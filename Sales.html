@@ -2,190 +2,58 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إدارة العروض الموسمية - ميني ماركت اللبن الغربي</title>
+    <title>إدارة العروض الموسمية المتقدمة - ميني ماركت اللبن الغربي</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     
-    <!-- 🌐 استدعاء مكاتب Firebase المعتمدة -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        @page {
-            size: A4;
-            margin: 4mm 4mm 4mm 4mm;
-        }
-        
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
-
-        :root {
-            --base-font-size: 9pt;
-        }
+        @page { size: A4; margin: 4mm; }
+        *, *::before, *::after { box-sizing: border-box; }
+        :root { --base-font-size: 9pt; }
 
         body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            direction: rtl;
-            background-color: #f8fafc;
-            color: #334155;
-            transition: background-color 0.3s, color 0.3s;
-            min-height: 100vh;
+            font-family: 'Arial', sans-serif; margin: 0; padding: 0; direction: rtl;
+            background-color: #f8fafc; color: #334155; min-height: 100vh;
         }
 
-        /* 🎛️ شريط التحكم العلوي المطور الشامل */
         .control-panel {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            background-color: #ffffff;
-            border-bottom: 2px solid #cbd5e1;
-            padding: 8px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 9999;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            flex-wrap: wrap;
-            gap: 10px;
+            position: fixed; top: 0; left: 0; right: 0; background-color: #ffffff;
+            border-bottom: 2px solid #cbd5e1; padding: 8px 15px; display: flex;
+            justify-content: space-between; align-items: center; z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); flex-wrap: wrap; gap: 10px;
         }
+        .panel-right { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .nav-btn-home { background-color: #1e3a5f; color: white; border: none; padding: 6px 12px; font-size: 9pt; font-weight: bold; border-radius: 6px; cursor: pointer; }
 
-        .panel-right {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
+        .season-selector-container { display: flex; align-items: center; gap: 4px; background-color: #f1f5f9; padding: 3px 6px; border-radius: 6px; border: 1px solid #cbd5e1; }
+        .season-dropdown { padding: 4px 8px; font-size: 9pt; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 4px; background-color: #ffffff; color: #1e3a5f; outline: none; cursor: pointer; }
+        .season-manage-btn { background-color: #475569; color: white; border: none; padding: 5px 8px; font-size: 8.5pt; font-weight: bold; border-radius: 4px; cursor: pointer; }
+        .add-season-btn { background-color: #0284c7; color: white; border: none; padding: 5px 10px; font-size: 8.5pt; font-weight: bold; border-radius: 4px; cursor: pointer; }
 
-        .nav-btn-home {
-            background-color: #1e3a5f;
-            color: white;
-            border: none;
-            padding: 6px 14px;
-            font-size: 9pt;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .nav-btn-home:hover {
-            background-color: #0f243e;
-        }
+        .search-input { padding: 6px 12px; font-size: 9pt; border: 2px solid #cbd5e1; border-radius: 6px; width: 120px; outline: none; }
+        .mode-btn, .font-btn { padding: 6px 12px; font-size: 9pt; font-weight: bold; border: 2px solid #cbd5e1; border-radius: 6px; cursor: pointer; background-color: #f8fafc; color: #64748b; }
+        .mode-btn.active[data-mode="color"] { background-color: #1e3a5f; color: #ffffff; border-color: #1e3a5f; }
+        .mode-btn.active[data-mode="bw"] { background-color: #000000; color: #ffffff; border-color: #000000; }
 
-        .season-badge-indicator {
-            background-color: #e2b43b;
-            color: #0f243e;
-            padding: 6px 12px;
-            font-size: 9pt;
-            font-weight: bold;
-            border-radius: 6px;
-            border: 1px solid #cbd5e1;
-        }
+        .font-tools { display: flex; align-items: center; gap: 2px; background: #f1f5f9; padding: 2px; border-radius: 8px; border: 1px solid #cbd5e1; }
+        .stats-badge { background-color: #fef08a; color: #854d0e; border: 1px solid #fef08a; padding: 5px 8px; font-size: 8.5pt; font-weight: bold; border-radius: 6px; }
+        .reset-btn { background-color: #ef4444; color: white; border: none; padding: 6px 12px; font-size: 9pt; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .print-btn { background-color: #16a34a; color: #ffffff; border: none; padding: 8px 15px; font-size: 9.5pt; font-weight: bold; border-radius: 6px; cursor: pointer; }
 
-        .search-input {
-            padding: 6px 12px;
-            font-size: 9pt;
-            border: 2px solid #cbd5e1;
-            border-radius: 6px;
-            width: 130px;
-            outline: none;
-        }
+        .wrapper { margin-top: 75px; position: relative; min-height: calc(100vh - 75px); padding-bottom: 20px; }
 
-        .mode-btn, .font-btn {
-            padding: 6px 12px;
-            font-size: 9pt;
-            font-weight: bold;
-            border: 2px solid #cbd5e1;
-            border-radius: 6px;
-            cursor: pointer;
-            background-color: #f8fafc;
-            color: #64748b;
-        }
-
-        .mode-btn.active[data-mode="color"] {
-            background-color: #1e3a5f;
-            color: #ffffff;
-            border-color: #1e3a5f;
-        }
-
-        .mode-btn.active[data-mode="bw"] {
-            background-color: #000000;
-            color: #ffffff;
-            border-color: #000000;
-        }
-
-        .font-tools {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: #f1f5f9;
-            padding: 2px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-        }
-
-        .stats-badge {
-            background-color: #fef08a;
-            color: #854d0e;
-            border: 1px solid #fef08a;
-            padding: 5px 10px;
-            font-size: 8.5pt;
-            font-weight: bold;
-            border-radius: 6px;
-        }
-
-        .reset-btn {
-            background-color: #ef4444;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            font-size: 9pt;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .print-btn {
-            background-color: #16a34a;
-            color: #ffffff;
-            border: none;
-            padding: 8px 15px;
-            font-size: 9.5pt;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        /* حاوية المحتوى */
-        .wrapper {
-            margin-top: 75px; 
-            position: relative;
-            min-height: calc(100vh - 75px);
-            padding-bottom: 20px;
-        }
-
-        /* ترويسة البروشور */
-        .header-container {
-            position: relative;
-            text-align: center;
-            padding: 14px 20px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            z-index: 20;
-        }
-
+        .header-container { position: relative; padding: 14px 20px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); z-index: 20; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .season-header-icon { font-size: 24pt; display: inline-block; vertical-align: middle; }
+        .header-text-side { text-align: center; flex-grow: 1; }
         .header-container h1 { margin: 0; font-size: 19pt; font-weight: 800; outline: none; }
         .header-container p { margin: 2px 0 6px 0; font-size: 10pt; font-weight: bold; outline: none; }
         .header-badge-row { margin-top: 6px; }
         .header-container .badge { display: inline-block; padding: 4px 22px; font-size: 10pt; font-weight: bold; border-radius: 6px; outline: none; }
 
-        /* 🎨 ألوان الطور الملون الأساسي */
-        body.color-mode { background-color: #f8fafc; }
-        body.color-mode .header-container {
-            background: linear-gradient(135deg, #0f243e 0%, #1e3a5f 50%, #2a5282 100%);
-            color: #ffffff; border-bottom: 4px solid #e2b43b; 
-        }
+        /* 🎨 الأطوار اللمسية (ملون / أبيض وأسود) */
+        body.color-mode .header-container { background: linear-gradient(135deg, #0f243e 0%, #1e3a5f 50%, #2a5282 100%); color: #ffffff; border-bottom: 4px solid #e2b43b; }
         body.color-mode .header-container p { color: #cbd5e1; }
         body.color-mode .header-container .badge { background-color: #e2b43b; color: #0f243e; }
         body.color-mode .section-box { background-color: #ffffff; border: 1px solid #e2e8f0; }
@@ -197,37 +65,30 @@
         body.color-mode .brand-badge { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
         body.color-mode .offer-badge { color: #dc2626; background-color: #fee2e2; border: 1px solid #fca5a5; }
         body.color-mode tr.featured-offer { background-color: #fef08a !important; }
-        body.color-mode tr.featured-offer .item-name-text::before { content: "🔥 "; font-size: 11pt; vertical-align: middle; }
+        body.color-mode tr.featured-offer .item-name-text::before { content: "🔥 "; font-size: 11pt; }
         body.color-mode tr.featured-offer .item-price { color: #dc2626 !important; font-weight: 900; }
         body.color-mode tr.draft-item { background-color: #f1f5f9 !important; opacity: 0.55; border: 1px dashed #94a3b8; }
         body.color-mode tr.draft-item .item-name-text::before { content: "📝 [مسودة] "; color: #64748b; }
         body.color-mode .footer-container { color: #1e3a5f; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-top: 2px solid #e2b43b; }
 
-        /* 🏁 ألوان طور الأبيض والأسود */
         body.bw-mode { background-color: #ffffff; color: #000000; }
         body.bw-mode .header-container { background: #ffffff; color: #000000; border: 2px solid #000000; box-shadow: none; border-radius: 6px; }
         body.bw-mode .header-container h1, body.bw-mode .header-container p { color: #000000; }
         body.bw-mode .header-container .badge { background-color: #000000; color: #ffffff; border-radius: 2px; }
         body.bw-mode .section-box, body.bw-mode .dairy-box { background-color: #ffffff; border: 1px solid #000000; }
-        body.bw-mode .section-title, body.bw-mode .dairy-title { background-color: #000000; color: #ffffff; border-bottom: 1px solid #000000; }
-        body.bw-mode .item-price, body.bw-mode .dairy-box .item-price { color: #000000; }
-        body.bw-mode .brand-badge { background-color: #ffffff; color: #000000; border: 1px solid #000000; border-radius: 2px; font-weight: bold; }
+        body.bw-mode .section-title, body.bw-mode .dairy-title { background-color: #000000; color: #ffffff; }
+        body.bw-mode .item-price { color: #000000; }
+        body.bw-mode .brand-badge { background-color: #ffffff; color: #000000; border: 1px solid #000000; border-radius: 2px; }
         body.bw-mode .offer-badge { color: #000000; background-color: transparent; border: 1px solid #000000; }
         body.bw-mode tr.featured-offer { background-color: #ffffff !important; outline: 2px dashed #000000; outline-offset: -2px; }
-        body.bw-mode tr.featured-offer td { font-weight: 900 !important; }
         body.bw-mode tr.featured-offer .item-name-text::before { content: "★ "; }
         body.bw-mode .footer-container { color: #000000; background-color: #ffffff; border: 1px solid #000000; }
 
-        /* 📐 التوزيع ثلاثي الأعمدة */
         .grid-container { display: table; width: 100%; table-layout: fixed; }
         .grid-column { display: table-cell; width: 33.33%; padding: 0 4px; vertical-align: top; }
         .section-box { border-radius: 8px; margin-bottom: 6px; page-break-inside: avoid; overflow: hidden; cursor: grab; }
-        .section-box:active { cursor: grabbing; }
-        .sortable-ghost { opacity: 0.4; border: 2px dashed #64748b !important; background-color: #e2e8f0 !important; }
-
         .section-title { padding: 5px 10px; font-size: 10pt; font-weight: bold; margin: 0; text-align: center; outline: none; }
         .item-table { width: 100%; border-collapse: collapse; }
-        .item-table tr { cursor: pointer; transition: background-color 0.2s; }
         .item-table td { padding: 5px 6px; font-size: var(--base-font-size); border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
         body.bw-mode .item-table td { border-bottom: 1px dashed #cbd5e1; }
         .item-name { text-align: right; font-weight: bold; }
@@ -235,41 +96,31 @@
         .item-name-text { display: inline-block; }
         .item-price { text-align: left; white-space: nowrap; font-weight: bold; width: 33%; font-size: 1.05em; }
 
-        .feature-toggle-btn, .draft-toggle-btn, .delete-item-btn {
-            background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; font-size: 7.5pt; padding: 2px 4px; border-radius: 4px; cursor: pointer; margin-left: 2px; vertical-align: middle; display: inline-block;
-        }
-        .draft-toggle-btn { background-color: #e2e8f0; color: #475569; }
+        .feature-toggle-btn, .draft-toggle-btn, .delete-item-btn { background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; font-size: 7.5pt; padding: 2px 4px; border-radius: 4px; cursor: pointer; margin-left: 2px; }
         .delete-item-btn { background-color: #fee2e2; color: #ef4444; border-color: #fca5a5; }
+        .add-item-row-btn { display: block; width: 100%; background-color: #f8fafc; border: 1px dashed #cbd5e1; color: #64748b; font-size: 8pt; padding: 5px; text-align: center; cursor: pointer; font-weight: bold; }
 
-        .add-item-row-btn {
-            display: block; width: 100%; background-color: #f8fafc; border: 1px dashed #cbd5e1; color: #64748b; font-size: 8pt; padding: 5px; text-align: center; cursor: pointer; font-weight: bold; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;
-        }
-        .add-item-row-btn:hover { background-color: #e2e8f0; color: #334155; }
-
-        /* 📦 النوافذ المنبثقة */
         .popup-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); z-index: 9999; }
-        .popup-screen { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #ffffff; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); z-index: 10000; width: 360px; padding: 20px; direction: rtl; }
+        .popup-screen { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #ffffff; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); z-index: 10000; width: 380px; padding: 20px; }
         .popup-screen h3 { margin-top: 0; margin-bottom: 15px; font-size: 11pt; color: #1e3a5f; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 8.5pt; font-weight: bold; margin-bottom: 5px; color: #475569; }
-        .form-group input, .form-group select { width: 100%; padding: 8px 10px; font-size: 9pt; border: 2px solid #cbd5e1; border-radius: 6px; outline: none; font-family: inherit; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 10px; font-size: 9pt; border: 2px solid #cbd5e1; border-radius: 6px; outline: none; }
         .popup-actions { display: flex; gap: 8px; margin-top: 18px; }
         .popup-btn { flex: 1; padding: 8px; font-size: 9pt; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; text-align: center; }
         .btn-save { background-color: #16a34a; color: white; }
+        .btn-delete { background-color: #ef4444; color: white; }
         .btn-cancel { background-color: #64748b; color: white; }
 
         .icon-selector-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 5px; max-height: 70px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 5px; border-radius: 6px; }
         .icon-opt { text-align: center; font-size: 12pt; cursor: pointer; padding: 2px; border-radius: 4px; }
-        .icon-opt:hover { background-color: #f1f5f9; }
         .icon-opt.selected { background-color: #fef08a; border: 1px solid #e2b43b; }
 
-        .brand-badge, .offer-badge { display: inline-block; }
-        .brand-badge { padding: 1px 6px; font-size: 0.85em; font-weight: bold; border-radius: 4px; margin-right: 4px; }
-        .offer-badge { padding: 0px 4px; border-radius: 3px; font-size: 0.8em; margin-top: 2px; }
+        .brand-badge, .offer-badge { display: inline-block; padding: 1px 6px; font-size: 0.85em; font-weight: bold; border-radius: 4px; margin-right: 4px; }
         .footer-container { text-align: center; font-size: 8.5pt; margin-top: 5px; padding: 6px; border-radius: 8px; font-weight: bold; outline: none; }
 
         @media print {
-            .control-panel, .feature-toggle-btn, .draft-toggle-btn, .delete-item-btn, .add-item-row-btn, .popup-screen, .popup-overlay { display: none !important; }
+            .control-panel, .feature-toggle-btn, .delete-item-btn, .add-item-row-btn, .popup-screen, .popup-overlay { display: none !important; }
             .wrapper { margin-top: 0px !important; }
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             tr.draft-item { display: none !important; }
@@ -280,64 +131,70 @@
 
     <div class="control-panel">
         <div class="panel-right">
-            <button class="nav-btn-home" onclick="window.location.href='index.html'">🏠 القائمة الرئيسية</button>
-            <div class="season-badge-indicator" id="activeSeasonIndicator">📍 العروض الحالية</div>
-
+            <button class="nav-btn-home" onclick="window.location.href='index.html'">🏠 الرئيسية</button>
+            <div class="season-selector-container">
+                <select class="season-dropdown" id="seasonDropdown" onchange="switchSeason(this.value)"></select>
+                <button class="season-manage-btn" onclick="openEditSeasonPopup()">✏️ تعديل الموسم</button>
+                <button class="add-season-btn" onclick="openAddSeasonPopup()">➕ موسم جديد</button>
+            </div>
             <button class="mode-btn active" data-mode="color" onclick="changeMode('color')">🎨 ملون</button>
-            <button class="mode-btn" data-mode="bw" onclick="changeMode('bw')">⚫ أبيض وأسود</button>
-            
+            <button class="mode-btn" data-mode="bw" onclick="changeMode('bw')">⚫ أسود</button>
             <div class="font-tools">
                 <button class="font-btn" onclick="adjustFontSize(1)">➕ خط</button>
                 <button class="font-btn" onclick="adjustFontSize(-1)">➖ خط</button>
             </div>
-
-            <input type="text" class="search-input" id="searchBar" placeholder="🔍 بحث سريع..." oninput="filterItems()">
+            <input type="text" class="search-input" id="searchBar" placeholder="🔍 بحث..." oninput="filterItems()">
             <div class="stats-badge" id="statsBadge">🔥 المميزة: 0</div>
         </div>
         <div>
             <button class="reset-btn" onclick="resetToFactory()">🔄 تصفير الموسم</button>
-            <button class="print-btn" onclick="window.print()">📥 حفظ وطباعة PDF</button>
+            <button class="print-btn" onclick="window.print()">📥 طباعة PDF</button>
         </div>
     </div>
 
     <div class="popup-overlay" id="popupOverlay" onclick="closeItemPopup()"></div>
     <div class="popup-screen" id="itemPopup">
         <h3 id="popupTitle">📝 تعديل بيانات الصنف</h3>
-        <div class="form-group">
-            <label>اسم الصنف (المنتج):</label>
-            <input type="text" id="popItemName">
-        </div>
-        <div class="form-group">
-            <label>السعر / العرض الجديد:</label>
-            <input type="text" id="popItemPrice">
-        </div>
-        <div class="form-group">
-            <label>نص الشارة التوضيحية (اختياري):</label>
-            <input type="text" id="popItemBadge">
-        </div>
-        <div class="form-group">
-            <label>نوع الشارة:</label>
-            <select id="popItemBadgeType">
-                <option value="offer">شارة عرض حمراء</option>
-                <option value="brand">شارة شركة زرقاء</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>اختر أيقونة مناسبة للقسم:</label>
-            <div class="icon-selector-grid" id="popIconGrid"></div>
-        </div>
+        <div class="form-group"><label>اسم المنتج:</label><input type="text" id="popItemName"></div>
+        <div class="form-group"><label>السعر / العرض الجديد:</label><input type="text" id="popItemPrice"></div>
+        <div class="form-group"><label>نص الشارة (اختياري):</label><input type="text" id="popItemBadge"></div>
+        <div class="form-group"><label>نوع الشارة:</label><select id="popItemBadgeType"><option value="offer">شارة عرض حمراء</option><option value="brand">شارة شركة زرقاء</option></select></div>
+        <div class="form-group"><label>الأيقونة:</label><div class="icon-selector-grid" id="popIconGrid"></div></div>
         <div class="popup-actions">
-            <button class="popup-btn btn-save" onclick="saveItemFromPopup()">حفظ التعديلات وعرضها ✓</button>
+            <button class="popup-btn btn-save" onclick="saveItemFromPopup()">حفظ ✓</button>
             <button class="popup-btn btn-cancel" onclick="closeItemPopup()">إلغاء ↩️</button>
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="seasonPopupOverlay" onclick="closeSeasonPopup()"></div>
+    <div class="popup-screen" id="seasonPopup">
+        <h3>📂 إضافة موسم عروض جديد</h3>
+        <div class="form-group"><label>اسم الموسم:</label><input type="text" id="newSeasonName"></div>
+        <div class="form-group"><label>أيقونة الموسم (Emoji):</label><input type="text" id="newSeasonIcon" style="text-align:center; font-size:14pt;"></div>
+        <div class="popup-actions">
+            <button class="popup-btn btn-save" onclick="createNewSeasonSubmit()">إنشاء الموسم ✓</button>
+            <button class="popup-btn btn-cancel" onclick="closeSeasonPopup()">إلغاء ↩️</button>
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="editSeasonOverlay" onclick="closeEditSeasonPopup()"></div>
+    <div class="popup-screen" id="editSeasonPopup">
+        <h3>✏️ تعديل / إلغاء الموسم الحالي</h3>
+        <div class="form-group"><label>تعديل الاسم:</label><input type="text" id="editSeasonName"></div>
+        <div class="form-group"><label>تعديل الأيقونة (Emoji):</label><input type="text" id="editSeasonIcon" style="text-align:center; font-size:14pt;"></div>
+        <div class="popup-actions">
+            <button class="popup-btn btn-save" onclick="saveSeasonEditsSubmit()">حفظ الحالية</button>
+            <button class="popup-btn btn-delete" onclick="deleteCurrentSeasonSubmit()">🗑️ حذف بالكامل</button>
         </div>
     </div>
 
     <div class="wrapper">
         <div class="header-container" id="main-header">
-            <h1 contenteditable="true" onblur="saveAllData()" id="h-title">ميني ماركت اللبن الغربي أبو هزيم</h1>
-            <p contenteditable="true" onblur="saveAllData()" id="h-sub">وسط البلد - خلف المسجد الرئيسي</p>
-            <div class="header-badge-row">
-                <div class="badge" contenteditable="true" onblur="saveAllData()" id="h-badge">وفرنا عليك التفكير.. عروض العيد الكبرى صارت بين ايديك .</div>
+            <span id="seasonIconView" class="season-header-icon"></span>
+            <div class="header-text-side">
+                <h1 contenteditable="true" onblur="saveAllData()" id="h-title">ميني ماركت اللبن الغربي أبو هزيم</h1>
+                <p contenteditable="true" onblur="saveAllData()" id="h-sub">وسط البلد - خلف المسجد الرئيسي</p>
+                <div class="header-badge-row"><div class="badge" contenteditable="true" onblur="saveAllData()" id="h-badge">جاري جلب القوائم...</div></div>
             </div>
         </div>
 
@@ -345,53 +202,40 @@
             <div class="grid-column sortable-list" id="col-1">
                 <div class="section-box dairy-box" id="sec-dairy">
                     <h3 class="section-title dairy-title" contenteditable="true" onblur="saveAllData()">🥛 قسم الألبان والأجبان الطازجة</h3>
-                    <table class="item-table"><tbody></tbody></table>
-                    <button class="add-item-row-btn" onclick="openPopupForAdd('sec-dairy')">➕ إضافة صنف جديد لهذا القسم</button>
+                    <table class="item-table"><tbody></tbody></table><button class="add-item-row-btn" onclick="openPopupForAdd('sec-dairy')">➕ إضافة صنف</button>
                 </div>
                 <div class="section-box" id="sec-rice">
                     <h3 class="section-title" contenteditable="true" onblur="saveAllData()">🌾 من الأرز والزيوت والطحين</h3>
-                    <table class="item-table"><tbody></tbody></table>
-                    <button class="add-item-row-btn" onclick="openPopupForAdd('sec-rice')">➕ إضافة صنف جديد لهذا القسم</button>
+                    <table class="item-table"><tbody></tbody></table><button class="add-item-row-btn" onclick="openPopupForAdd('sec-rice')">➕ إضافة صنف</button>
                 </div>
             </div>
-
             <div class="grid-column sortable-list" id="col-2">
                 <div class="section-box" id="sec-legumes">
                     <h3 class="section-title" contenteditable="true" onblur="saveAllData()">🍝 البقوليات والمواد التموينية</h3>
-                    <table class="item-table"><tbody></tbody></table>
-                    <button class="add-item-row-btn" onclick="openPopupForAdd('sec-legumes')">➕ إضافة صنف جديد لهذا القسم</button>
+                    <table class="item-table"><tbody></tbody></table><button class="add-item-row-btn" onclick="openPopupForAdd('sec-legumes')">➕ إضافة صنف</button>
                 </div>
                 <div class="section-box" id="sec-drinks">
                     <h3 class="section-title" contenteditable="true" onblur="saveAllData()">☕ المشروبات والبسكويت</h3>
-                    <table class="item-table"><tbody></tbody></table>
-                    <button class="add-item-row-btn" onclick="openPopupForAdd('sec-drinks')">➕ إضافة صنف جديد لهذا القسم</button>
+                    <table class="item-table"><tbody></tbody></table><button class="add-item-row-btn" onclick="openPopupForAdd('sec-drinks')">➕ إضافة صنف</button>
                 </div>
             </div>
-
             <div class="grid-column sortable-list" id="col-3">
                 <div class="section-box" id="sec-cans">
                     <h3 class="section-title" contenteditable="true" onblur="saveAllData()">🥫 المعلبات والصلصة</h3>
-                    <table class="item-table"><tbody></tbody></table>
-                    <button class="add-item-row-btn" onclick="openPopupForAdd('sec-cans')">➕ إضافة صنف جديد لهذا القسم</button>
+                    <table class="item-table"><tbody></tbody></table><button class="add-item-row-btn" onclick="openPopupForAdd('sec-cans')">➕ إضافة صنف</button>
                 </div>
                 <div class="section-box" id="sec-cleaners">
                     <h3 class="section-title" contenteditable="true" onblur="saveAllData()">🧼 المنظفات والعناية الشخصية</h3>
-                    <table class="item-table"><tbody></tbody></table>
-                    <button class="add-item-row-btn" onclick="openPopupForAdd('sec-cleaners')">➕ إضافة صنف جديد لهذا القسم</button>
+                    <table class="item-table"><tbody></tbody></table><button class="add-item-row-btn" onclick="openPopupForAdd('sec-cleaners')">➕ إضافة صنف</button>
                 </div>
                 <div class="section-box" id="sec-plastics">
                     <h3 class="section-title" contenteditable="true" onblur="saveAllData()">🍽️ الأدوات المنزلية والبلاستيك</h3>
-                    <table class="item-table"><tbody></tbody></table>
-                    <button class="add-item-row-btn" onclick="openPopupForAdd('sec-plastics')">➕ إضافة صنف جديد لهذا القسم</button>
+                    <table class="item-table"><tbody></tbody></table><button class="add-item-row-btn" onclick="openPopupForAdd('sec-plastics')">➕ إضافة صنف</button>
                 </div>
             </div>
         </div>
 
-        <div class="footer">
-            <div class="footer-container" contenteditable="true" onblur="saveAllData()" id="main-footer">
-                ميني ماركت اللبن الغربي - نتشرف بزيارتكم دائماً ونسعى لخدمتكم بأفضل العروض | العروض سارية حتى نفاد الكمية .
-            </div>
-        </div>
+        <div class="footer"><div class="footer-container" contenteditable="true" onblur="saveAllData()" id="main-footer">ميني ماركت اللبن الغربي - نتشرف بزيارتكم دائماً ونسعى لخدمتكم بأفضل العروض | العروض سارية حتى نفاد الكمية .</div></div>
     </div>
 
     <script>
@@ -409,29 +253,19 @@
         const database = firebase.database();
 
         const urlParams = new URLSearchParams(window.location.search);
-        const currentSeasonID = urlParams.get('season') || 'eid_offers'; 
-
+        var currentSeasonID = urlParams.get('season') || 'weekly_offers'; 
         var currentFontSize = 9; 
-        const supportedIcons = ["🛒","🥛","🥣","🫙","☕","🌿","🥤","🍚","🛢️","🌾","🥡","🍬","🧂","🫘","🍝","🥫","🐟","🌽","🍄","🧁","🍪","🧼","🧴","🧻","🧺","🧹","🍽️","🛍️","🍯","🌶️","🍜"];
-        var currentEditingRow = null; 
-        var currentSectionForAdd = null;
-        var selectedIconInPopup = "🛒";
+        const supportedIcons = ["🛒","🥛","🥣","🫙","☕","🌿","🥤","🍚","🛢️","🌾","🥡","🍬","🧂","🫘","🍝","🥫","🐟","🌽","🍄","🧁","🍪","🧼","🧴","🧻","🧺","🧹","🍽️","🛍️","🍯","🌶️","🍜","🍅","🥒","🪥","👶"];
+        var currentEditingRow = null; var currentSectionForAdd = null; var selectedIconInPopup = "🛒";
 
-        const seasonNamesMap = {
-            'weekly_offers': '📍 وضع التعديل النشط: العروض الأسبوعية الدائمة',
-            'ramadan_2026': '🌙 وضع التعديل النشط: بروشور خير رمضان',
-            'eid_offers': '🍬 وضع التعديل النشط: عروض عيد الفطر السعيد',
-            'summer_2026': '☀️ وضع التعديل النشط: تخفيضات موسم الصيف'
-        };
-
-        // 🎯 مصفوفة البيانات الثابتة والمطابقة 100% للتصنيف الصحيح بدون خلط عشوائي برمجياً
+        // قاعدة البيانات الشاملة المدعومة بكافة السلع من البروشور المرفق
         const exactCorrectData = {
             "sec-dairy": [
                 { name: "علبة لبنة 180 غم (زعتر أو شطة أو عمية)", price: "كل 3 بـ 10 شيقل", icon: "🥛" },
                 { name: "علبة لبنة 400 غم", price: "5 شيقل فقط", icon: "🥛" },
-                { name: "كاسة لين 1 كيلو", price: "كل 3 بـ 11 شيقل", icon: "🥛" },
+                { name: "كاسة لبن 1 كيلو", price: "5 شيقل فقط", icon: "🥛" },
                 { name: "كيس لبنة 400 غم", price: "5 شيقل فقط", icon: "🥛" },
-                { name: "مرتبان لين 4 كيلو", price: "15 شيقل فقط", icon: "🥛" }
+                { name: "مرتبان لبن 4 كيلو", price: "15 شيقل فقط", icon: "🥛" }
             ],
             "sec-rice": [
                 { name: "أرز حبة قصيرة 5 كيلو أبو غربية", price: "34 شيقل فقط", icon: "🌾" },
@@ -439,358 +273,233 @@
                 { name: "أرز 5 كيلو الشيف بوندي", price: "28 شيقل فقط", icon: "🌾" },
                 { name: "أرز بسمتي 5 كيلو الضيافة", price: "27 شيقل فقط", icon: "🌾" },
                 { name: "أرز بسمتي 5 كيلو عبد السلام", price: "25 شيقل فقط", icon: "🌾" },
-                { name: "ارز 5 كيلو صنوايت 55", price: "35 شيقل فقط", icon: "🌾" },
+                { name: "أرز 5 كيلو صنوايت", price: "35 شيقل فقط", icon: "🌾" },
                 { name: "زيت دوار شمس 3 لتر", price: "21 شيقل فقط", icon: "🛢️" },
                 { name: "زيت دوار شمس 5 لتر", price: "30 شيقل فقط", icon: "🛢️" },
-                { name: "طحين زيرو حيفا نخب أول 25 ك", price: "53 شيقل فقط", icon: "🌾" },
-                { name: "طحين 1 كيلو الفاخر", price: "كل 5 بـ 11 شيقل", icon: "🌾" }
+                { name: "طحين زيرو حيفا نخب أول 25 ك", price: "53 شيقل فقط", icon: "🥡" },
+                { name: "طحين 1 كيلو الفاخر", price: "كل 5 بـ 11 شيقل", icon: "🥡" },
+                { name: "سكر", price: "كل 4 بـ 11 شيقل", icon: "🍚" }
             ],
             "sec-legumes": [
-                { name: "فول علب مدمس خلطة", price: "كل 6 بـ 10 شيقل", icon: "🫘" },
-                { name: "فاصولياء علب مطبوخة", price: "كل 3 بـ 10 شيقل", icon: "🥫" },
-                { name: "عجوة جولان 1 كيلو", price: "14 شيقل فقط", icon: "🌴" },
+                { name: "تمر عجوة جولان 1 كيلو", price: "14 شيقل فقط", icon: "🍯" },
                 { name: "فريكة النخيل الفاخرة", price: "8.5 شيقل فقط", icon: "🌾" },
-                { name: "عدس حبة كبيرة", price: "5.5 شيقل فقط", icon: "🥣" },
-                { name: "عدس حبة صغيرة", price: "5.5 شيقل فقط", icon: "🥣" },
+                { name: "عدس حبة كبيرة", price: "5.5 شيقل فقط", icon: "🫘" },
+                { name: "عدس حبة صغيرة", price: "5.5 شيقل فقط", icon: "🫘" },
                 { name: "برغل ناعم", price: "4.5 شيقل فقط", icon: "🌾" },
-                { name: "ذرة بشار نخب أول", price: "5.5 شيقل فقط", icon: "🍿" },
+                { name: "ذرة بشار نخب أول", price: "5.5 شيقل فقط", icon: "🌽" },
                 { name: "طحينية الشلة 450 غم", price: "7 شيقل فقط", icon: "🫙" },
                 { name: "شعرية الوطنية", price: "كل 9 بـ 10 شيقل", icon: "🍝" },
                 { name: "شعرية أبو عيطة", price: "كل 7 بـ 10 شيقل", icon: "🍝" },
                 { name: "معكرونة أبو عيطة", price: "كل 5 بـ 11 شيقل", icon: "🍝" },
-                { name: "سميد حيفا 1 كيلو", price: "كل 3 بـ 11 شيقل", icon: "🌾" },
-                { name: "خميرة صغيرة فورية", price: "كل 4 بـ 10 شيقل", icon: "🥣" },
-                { name: "ماجي مكعبات باكيت كامل", price: "كل 10 بـ 6 شيقل", icon: "📦" },
-                { name: "بهارات علي مشكل", price: "كل 6 بـ 10 شيقل", icon: "🧂" },
+                { name: "سميد حيفا 1 كيلو", price: "كل 3 بـ 11 شيقل", icon: "🍚" },
+                { name: "خميرة صغيرة فورية", price: "كل 4 بـ 10 شيقل", icon: "🧂" },
+                { name: "ماجي مكعبات باكيت كامل", price: "كل 6 بـ 10 شيقل", icon: "🥣" },
+                { name: "بهارات علي مشكل", price: "كل 3 بـ 10 شيقل", icon: "🧂" },
                 { name: "ملح طعام أكياس", price: "كل 3 بـ 4 شيقل", icon: "🧂" },
-                { name: "نشا عبوة كرتون", price: "كل 4 بـ 11 شيقل", icon: "📦" },
-                { name: "سكر", price: "كل 4 بـ 11 شيقل", icon: "🍚" }
+                { name: "نشا عبوة كرتون", price: "كل 4 بـ 11 شيقل", icon: "🥣" }
             ],
             "sec-drinks": [
                 { name: "نسكافيه 24 حبة عبوة", price: "14 شيقل فقط", icon: "☕" },
                 { name: "شاي ليبتون أحمر", price: "10 شيقل فقط", icon: "☕" },
-                { name: "شاي الجنان عبوة", price: "6 شيقل فقط", icon: "🌿" },
-                { name: "مبيّض مرينا عبوة", price: "6 شيقل فقط", icon: "🫙" },
-                { name: "بسكويت شاي كبير", price: "كل 2 بـ 15 شيقل", icon: "🍪" },
-                { name: "بيجلا حجم كبير", price: "كل 3 بـ 10 شيقل", icon: "🥨" }
+                { name: "شاي الجنان عبوة", price: "6 شيقل فقط", icon: "☕" },
+                { name: "مبيّض مرينا عبوة", price: "6 شيقل فقط", icon: "🥛" },
+                { name: "بسكويت شاي حجم كبير", price: "حبتين بـ 15 شيقل", icon: "🍪" },
+                { name: "بيجلا حجم كبير", price: "كل 10 بـ 6 شيقل", icon: "🍪" }
             ],
             "sec-cans": [
                 { name: "تونا قطع أبو غربية أو البشيتي", price: "كل 4 بـ 17 شيقل", icon: "🐟" },
                 { name: "صلصة بندورة كرتونة 24 حبة", price: "14 شيقل فقط", icon: "🥫" },
-                { name: "حمص حب بريحان 550 غم", price: "كل 3 بـ 11 شيقل", icon: "🥣" },
-                { name: "مخلل خيار علب", price: "13 شيقل فقط", icon: "🫙" },
-                { name: "حمص البيروني علب", price: "كل 3 بـ 11 شيقل", icon: "🥣" },
-                { name: "قشطة علب فاخرة", price: "كل 5 بـ 11 شيقل", icon: "🥫" },
-                { name: "صلصة أول قطفة ممتازة", price: "6 شيقل فقط", icon: "🥫" },
-                { name: "صلصة بندورة 400 غم", price: "كل 6 بـ 10 شيقل", icon: "🥫" },
+                { name: "حمص حب بريحان 550 غم", price: "كل 3 بـ 11 شيقل", icon: "🫘" },
+                { name: "مخلل خيار علب", price: "كل 3 بـ 11 شيقل", icon: "🥒" },
+                { name: "حمص البيروني علب", price: "كل 3 بـ 11 شيقل", icon: "🫘" },
+                { name: "قشطة علب فاخرة", price: "كل 5 بـ 11 شيقل", icon: "🥣" },
+                { name: "صلصة أول قطفة ممتازة", price: "كل 6 بـ 10 شيقل", icon: "🥫" },
+                { name: "صلصة بندورة 400 غم", price: "كل 4 بـ 10 شيقل", icon: "🥫" },
                 { name: "فطر علب كامل فاخر", price: "كل 4 بـ 10 شيقل", icon: "🍄" },
                 { name: "سردين العوافي بالزيت", price: "كل 4 بـ 11 شيقل", icon: "🐟" },
-                { name: "ذرة علب حلوة", price: "كل 4 بـ 11 شيقل", icon: "🌽" },
+                { name: "ذرة علب حلوة", price: "كل 3 بـ 9 شيقل", icon: "🌽" },
+                { name: "فاصولياء علب مطبوخة", price: "كل 3 بـ 10 شيقل", icon: "🫘" },
+                { name: "فول علب مدمس خلطة", price: "كل 6 بـ 10 شيقل", icon: "🫘" },
                 { name: "كاتشب عبوة عائلية", price: "كل 3 بـ 11 شيقل", icon: "🍅" }
             ],
             "sec-cleaners": [
                 { name: "محارم تواليت مضغوط 2.5 ك", price: "26 شيقل فقط", icon: "🧻" },
                 { name: "فوط بامبرز أطفال", price: "25 شيقل فقط", icon: "👶" },
-                { name: "شامبو هيد اند شولدرز 400 مل", price: "15 شيقل فقط", icon: "🧴" },
-                { name: "شامبو صانصيلك 600 مل", price: "5 شيقل فقط", icon: "🧴" },
+                { name: "شامبو هيد اند شولدرز 400 مل", price: "14 شيقل فقط", icon: "🧴" },
+                { name: "شامبو صانصيلك 600 مل", price: "13 شيقل فقط", icon: "🧴" },
                 { name: "محارم ناعم 3 طبقات 800 غم", price: "8 شيقل فقط", icon: "🧻" },
-                { name: "أولويز ديل عبوة اقتصادية", price: "6.5 شيقل فقط", icon: "🧼" },
-                { name: "معجون أسنان سيجنال كبير", price: "5 شيقل فقط", icon: "🪥" },
-                { name: "مسحوق غسيل عبوة 1 كيلو", price: "كل 4 بـ 10 شيقل", icon: "🧼" },
-                { name: "فوط صحية متنوعة", price: "كل 4 بـ 11 شيقل", icon: "🧼" },
+                { name: "أولويز ديل عبوة اقتصادية", price: "6.5 شيقل فقط", icon: "🧴" },
+                { name: "معجون أسنان سيجنال كبير", price: "6 شيقل فقط", icon: "🪥" },
+                { name: "مسحوق غسيل عبوة 1 كيلو", price: "5 شيقل فقط", icon: "🧼" },
+                { name: "فوط صحية متنوعة", price: "كل 4 بـ 11 شيقل", icon: "🧴" },
                 { name: "صابون سبعات أو دوف ناعم", price: "كل 4 بـ 11 شيقل", icon: "🧼" },
-                { name: "صابون سائل للأيادي", price: "كل 3 بـ 9 شيقل", icon: "🧴" }
+                { name: "صابون سائل للأيادي", price: "كل 3 بـ 9 شيقل", icon: "🧼" }
             ],
             "sec-plastics": [
                 { name: "قصدير المنيوم فاخر", price: "5 شيقل فقط", icon: "🍽️" },
                 { name: "مكنسة ناعمة ممتازة", price: "4 شيقل فقط", icon: "🧹" },
                 { name: "قشاطة أرضيات متينة", price: "3 شيقل فقط", icon: "🧹" },
-                { name: "كاسات كرتون حجم كبير", price: "كل 4 بـ 11 شيقل", icon: "☕" },
+                { name: "كاسات كرتون حجم كبير", price: "كل 4 بـ 11 شيقل", icon: "🥤" },
                 { name: "صحون مفرود وسط بلاستيك", price: "كل 6 بـ 10 شيقل", icon: "🍽️" },
                 { name: "كاسات قهوة كرتون", price: "كل 6 بـ 10 شيقل", icon: "☕" },
                 { name: "كاسات بلاستيك متينة", price: "كل 5 بـ 10 شيقل", icon: "🥤" },
-                { name: "أكياس شوي ممتازة", price: "كل 4 بـ 6 شيقل", icon: "🛍️" },
+                { name: "أكياس شوي ممتازة", price: "كل 4 بـ 6 شيقل", icon: "🥡" },
                 { name: "صحون مجور صغير بلاستيك", price: "كل 4 بـ 5 شيقل", icon: "🍽️" }
             ]
         };
 
+        function openAddSeasonPopup() { document.getElementById('seasonPopupOverlay').style.display='block'; document.getElementById('seasonPopup').style.display='block'; }
+        function closeSeasonPopup() { document.getElementById('seasonPopupOverlay').style.display='none'; document.getElementById('seasonPopup').style.display='none'; }
+        
+        function openEditSeasonPopup() {
+            document.getElementById('editSeasonOverlay').style.display='block'; document.getElementById('editSeasonPopup').style.display='block';
+            database.ref('registered_seasons/' + currentSeasonID).once('value').then(snap => { document.getElementById('editSeasonName').value = snap.val() || ""; });
+            database.ref('seasons_icons/' + currentSeasonID).once('value').then(snap => { document.getElementById('editSeasonIcon').value = snap.val() || "🛍️"; });
+        }
+        function closeEditSeasonPopup() { document.getElementById('editSeasonOverlay').style.display='none'; document.getElementById('editSeasonPopup').style.display='none'; }
+
+        function createNewSeasonSubmit() {
+            var rawName = document.getElementById('newSeasonName').value.trim(); var rawIcon = document.getElementById('newSeasonIcon').value.trim() || "🛍️";
+            if(!rawName) return; var cleanId = 'season_' + Date.now();
+            database.ref('registered_seasons/' + cleanId).set(rawName).then(() => database.ref('seasons_icons/' + cleanId).set(rawIcon))
+            .then(() => database.ref('seasons/' + cleanId).set({ items: exactCorrectData, meta: { h_title: "ميني ماركت اللبن الغربي أبو هزيم", h_sub: "وسط البلد", h_badge: "عروض: " + rawName, footer: "ميني ماركت اللبن الغربي", fontSize: 9 } }))
+            .then(() => { closeSeasonPopup(); switchSeason(cleanId); });
+        }
+
+        function saveSeasonEditsSubmit() {
+            var updName = document.getElementById('editSeasonName').value.trim(); var updIcon = document.getElementById('editSeasonIcon').value.trim() || "🛍️";
+            if(!updName) return;
+            database.ref('registered_seasons/' + currentSeasonID).set(updName).then(() => database.ref('seasons_icons/' + currentSeasonID).set(updIcon))
+            .then(() => { closeEditSeasonPopup(); location.reload(); });
+        }
+
+        function deleteCurrentSeasonSubmit() {
+            if(currentSeasonID === 'weekly_offers') { alert('لا يمكن حذف الموسم الافتراضي!'); return; }
+            if(confirm('هل أنت متأكد من حذف هذا الموسم بالكامل؟')) {
+                database.ref('registered_seasons/' + currentSeasonID).remove().then(() => database.ref('seasons_icons/' + currentSeasonID).remove()).then(() => database.ref('seasons/' + currentSeasonID).remove())
+                .then(() => switchSeason('weekly_offers'));
+            }
+        }
+
+        function switchSeason(id) { window.location.search = '?season=' + id; }
+
+        function loadSeasonDropdown() {
+            var dropdown = document.getElementById('seasonDropdown'); dropdown.innerHTML = '';
+            database.ref('registered_seasons').once('value').then((snapshot) => {
+                var list = snapshot.val() || { 'weekly_offers': '📍 عروض العيد الكبرى (الافتراضية)' };
+                Object.keys(list).forEach(id => {
+                    var opt = document.createElement('option'); opt.value = id; opt.innerText = list[id];
+                    if(id === currentSeasonID) opt.selected = true; dropdown.appendChild(opt);
+                });
+            });
+            database.ref('seasons_icons/' + currentSeasonID).once('value').then(snap => { document.getElementById('seasonIconView').innerText = snap.val() || "📍"; });
+        }
+
         function buildIconGrid() {
-            var grid = document.getElementById('popIconGrid');
-            grid.innerHTML = '';
+            var grid = document.getElementById('popIconGrid'); grid.innerHTML = '';
             supportedIcons.forEach(icon => {
-                var div = document.createElement('div');
-                div.className = 'icon-opt';
-                div.innerText = icon;
-                div.onclick = function() {
-                    document.querySelectorAll('.icon-opt').forEach(opt => opt.classList.remove('selected'));
-                    div.classList.add('selected');
-                    selectedIconInPopup = icon;
-                };
+                var div = document.createElement('div'); div.className = 'icon-opt'; div.innerText = icon;
+                div.onclick = function() { document.querySelectorAll('.icon-opt').forEach(opt => opt.classList.remove('selected')); div.classList.add('selected'); selectedIconInPopup = icon; };
                 grid.appendChild(div);
             });
         }
 
-        function adjustFontSize(amount) {
-            currentFontSize += amount;
-            if(currentFontSize < 7) currentFontSize = 7;
-            if(currentFontSize > 14) currentFontSize = 14;
-            document.documentElement.style.setProperty('--base-font-size', currentFontSize + 'pt');
-            saveAllData();
-        }
+        function adjustFontSize(amount) { currentFontSize += amount; if(currentFontSize < 7) currentFontSize = 7; if(currentFontSize > 14) currentFontSize = 14; document.documentElement.style.setProperty('--base-font-size', currentFontSize + 'pt'); saveAllData(); }
+        function changeMode(mode) { document.body.className = (mode === 'color') ? 'color-mode' : 'bw-mode'; document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active')); document.querySelector(`.mode-btn[data-mode="${mode}"]`).classList.add('active'); }
+        function filterItems() { var input = document.getElementById('searchBar').value.toLowerCase(); document.querySelectorAll('.item-table tr').forEach(row => { row.style.display = row.querySelector('.item-name-text').innerText.toLowerCase().includes(input) ? '' : 'none'; }); }
 
         function openPopupForEdit(row) {
-            currentEditingRow = row;
-            currentSectionForAdd = null;
-            document.getElementById('popupTitle').innerText = "📝 تعديل بيانات الصنف";
-            document.getElementById('popItemName').value = row.querySelector('.item-name-text').innerText;
-            document.getElementById('popItemPrice').value = row.querySelector('.item-price').innerText;
-            var badgeSpan = row.querySelector('.brand-badge, .offer-badge');
-            document.getElementById('popItemBadge').value = badgeSpan ? badgeSpan.innerText : "";
-            if(badgeSpan) {
-                document.getElementById('popItemBadgeType').value = badgeSpan.classList.contains('brand-badge') ? 'brand' : 'offer';
-            }
-            var currentIcon = row.querySelector('.item-icon').innerText;
-            selectedIconInPopup = currentIcon || "🛒";
-            document.querySelectorAll('.icon-opt').forEach(opt => {
-                if(opt.innerText === selectedIconInPopup) opt.classList.add('selected');
-                else opt.classList.remove('selected');
-            });
-            document.getElementById('popupOverlay').style.display = 'block';
-            document.getElementById('itemPopup').style.display = 'block';
+            currentEditingRow = row; currentSectionForAdd = null; document.getElementById('popupTitle').innerText = "📝 تعديل بيانات الصنف";
+            document.getElementById('popItemName').value = row.querySelector('.item-name-text').innerText; document.getElementById('popItemPrice').value = row.querySelector('.item-price').innerText;
+            var badgeSpan = row.querySelector('.brand-badge, .offer-badge'); document.getElementById('popItemBadge').value = badgeSpan ? badgeSpan.innerText : "";
+            document.getElementById('popupOverlay').style.display = 'block'; document.getElementById('itemPopup').style.display = 'block';
         }
 
         function openPopupForAdd(sectionId) {
-            currentEditingRow = null;
-            currentSectionForAdd = sectionId;
-            document.getElementById('popupTitle').innerText = "➕ إضافة صنف جديد للقسم";
-            document.getElementById('popItemName').value = "";
-            document.getElementById('popItemPrice').value = "";
-            document.getElementById('popItemBadge').value = "";
-            selectedIconInPopup = "🛒";
-            document.getElementById('popupOverlay').style.display = 'block';
-            document.getElementById('itemPopup').style.display = 'block';
+            currentEditingRow = null; currentSectionForAdd = sectionId; document.getElementById('popupTitle').innerText = "➕ إضافة صنف جديد";
+            document.getElementById('popItemName').value = ""; document.getElementById('popItemPrice').value = ""; document.getElementById('popItemBadge').value = "";
+            document.getElementById('popupOverlay').style.display = 'block'; document.getElementById('itemPopup').style.display = 'block';
         }
-
-        function closeItemPopup() {
-            document.getElementById('popupOverlay').style.display = 'none';
-            document.getElementById('itemPopup').style.display = 'none';
-        }
+        function closeItemPopup() { document.getElementById('popupOverlay').style.display = 'none'; document.getElementById('itemPopup').style.display = 'none'; }
 
         function saveItemFromPopup() {
-            var name = document.getElementById('popItemName').value.trim() || "صنف بدون اسم";
-            var price = document.getElementById('popItemPrice').value.trim() || "0 شيقل";
-            var badgeText = document.getElementById('popItemBadge').value.trim();
-            var badgeType = document.getElementById('popItemBadgeType').value;
-            var badgeHTML = '';
-            if(badgeText) {
-                var cls = (badgeType === 'brand') ? 'brand-badge' : 'offer-badge';
-                badgeHTML = ` <span class="${cls}">${badgeText}</span>`;
-            }
+            var name = document.getElementById('popItemName').value.trim() || "صنف بدون اسم"; var price = document.getElementById('popItemPrice').value.trim() || "0 شيقل";
+            var badgeText = document.getElementById('popItemBadge').value.trim(); var badgeType = document.getElementById('popItemBadgeType').value;
+            var badgeHTML = ''; if(badgeText) { var cls = (badgeType === 'brand') ? 'brand-badge' : 'offer-badge'; badgeHTML = ` <span class="${cls}">${badgeText}</span>`; }
+            
             if(currentEditingRow) {
-                currentEditingRow.querySelector('.item-name-text').innerText = name;
-                currentEditingRow.querySelector('.item-price').innerText = price;
+                currentEditingRow.querySelector('.item-name-text').innerText = name; currentEditingRow.querySelector('.item-price').innerText = price;
                 currentEditingRow.querySelector('.item-icon').innerText = selectedIconInPopup;
-                var existingBadge = currentEditingRow.querySelector('.brand-badge, .offer-badge');
-                if(existingBadge) existingBadge.remove();
+                var existingBadge = currentEditingRow.querySelector('.brand-badge, .offer-badge'); if(existingBadge) existingBadge.remove();
                 if(badgeHTML) currentEditingRow.querySelector('.item-name').insertAdjacentHTML('beforeend', badgeHTML);
             } else if(currentSectionForAdd) {
-                renderNewRowElement(currentSectionForAdd, {
-                    name: name, price: price, icon: selectedIconInPopup, badge: badgeText, badgeType: badgeType, featured: false, isDraft: false
-                });
+                renderNewRowElement(currentSectionForAdd, { name: name, price: price, icon: selectedIconInPopup, badge: badgeText, badgeType: badgeType });
             }
-            saveAllData();
-            closeItemPopup();
+            saveAllData(); closeItemPopup();
         }
 
         function renderNewRowElement(sectionId, itemObj) {
-            var tbody = document.querySelector(`#${sectionId} .item-table tbody`);
-            if(!tbody) return;
-            var tr = document.createElement('tr');
-            if(itemObj.featured) tr.classList.add('featured-offer');
-            if(itemObj.isDraft) tr.classList.add('draft-item');
-            var badgeHTML = '';
-            if(itemObj.badge) {
-                var cls = (itemObj.badgeType === 'brand') ? 'brand-badge' : 'offer-badge';
-                badgeHTML = ` <span class="${cls}">${itemObj.badge}</span>`;
-            }
+            var tbody = document.querySelector(`#${sectionId} .item-table tbody`); if(!tbody) return;
+            var tr = document.createElement('tr'); if(itemObj.featured) tr.classList.add('featured-offer'); if(itemObj.isDraft) tr.classList.add('draft-item');
+            var badgeHTML = ''; if(itemObj.badge) { var cls = (itemObj.badgeType === 'brand') ? 'brand-badge' : 'offer-badge'; badgeHTML = ` <span class="${cls}">${itemObj.badge}</span>`; }
             tr.innerHTML = `
                 <td class="item-name">
-                    <button class="feature-toggle-btn" title="تفعيل كعرض نشط قوي" onclick="event.stopPropagation(); toggleFeature(this)">🔥</button>
-                    <button class="draft-toggle-btn" title="تحويل لمسودة (إخفاء من الطباعة)" onclick="event.stopPropagation(); toggleDraft(this)">📝</button>
+                    <button class="feature-toggle-btn" title="مميز" onclick="event.stopPropagation(); toggleFeature(this)">🔥</button>
+                    <button class="feature-toggle-btn" style="background:#e2e8f0" title="مسودة" onclick="event.stopPropagation(); toggleDraft(this)">📝</button>
                     <button class="delete-item-btn" title="حذف" onclick="event.stopPropagation(); deleteRow(this)">❌</button>
-                    <span class="item-icon">${itemObj.icon}</span>
-                    <span class="item-name-text">${itemObj.name}</span>${badgeHTML}
-                </td>
-                <td class="item-price">${itemObj.price}</td>
+                    <span class="item-icon">${itemObj.icon || '🛒'}</span><span class="item-name-text">${itemObj.name}</span>${badgeHTML}
+                </td><td class="item-price">${itemObj.price}</td>
             `;
-            tr.onclick = function() { openPopupForEdit(tr); };
-            tbody.appendChild(tr);
+            tr.onclick = function() { openPopupForEdit(tr); }; tbody.appendChild(tr);
         }
 
-        function toggleFeature(btn) {
-            var row = btn.closest('tr');
-            row.classList.remove('draft-item'); 
-            row.classList.toggle('featured-offer');
-            saveAllData();
-        }
-
-        function toggleDraft(btn) {
-            var row = btn.closest('tr');
-            row.classList.remove('featured-offer'); 
-            row.classList.toggle('draft-item');
-            saveAllData();
-        }
-
-        function deleteRow(btn) {
-            if(confirm('هل أنت متأكد من حذف هذا الصنف؟')) {
-                btn.closest('tr').remove();
-                saveAllData();
-            }
-        }
-
-        function changeMode(mode) {
-            document.body.className = (mode === 'color') ? 'color-mode' : 'bw-mode';
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`.mode-btn[data-mode="${mode}"]`).classList.add('active');
-            localStorage.setItem('market_flyer_mode_' + currentSeasonID, mode);
-        }
-
-        function filterItems() {
-            var input = document.getElementById('searchBar').value.toLowerCase();
-            document.querySelectorAll('.item-table tr').forEach(function(row) {
-                var text = row.querySelector('.item-name-text').innerText.toLowerCase();
-                row.style.display = text.includes(input) ? '' : 'none';
-            });
-        }
+        function toggleFeature(btn) { btn.closest('tr').classList.remove('draft-item'); btn.closest('tr').classList.toggle('featured-offer'); saveAllData(); }
+        function toggleDraft(btn) { btn.closest('tr').classList.remove('featured-offer'); btn.closest('tr').classList.toggle('draft-item'); saveAllData(); }
+        function deleteRow(btn) { if(confirm('حذف هذا الصنف؟')) { btn.closest('tr').remove(); saveAllData(); } }
 
         function saveAllData() {
-            var currentData = {};
-            var featuredCount = 0;
-
+            var currentData = {}; var featuredCount = 0;
             document.querySelectorAll('.section-box').forEach(box => {
-                var boxId = box.id;
-                currentData[boxId] = [];
+                var boxId = box.id; currentData[boxId] = [];
                 box.querySelectorAll('.item-table tr').forEach(row => {
-                    var nameText = row.querySelector('.item-name-text').innerText;
-                    var priceText = row.querySelector('.item-price').innerText;
-                    var iconText = row.querySelector('.item-icon').innerText;
-                    var isFeatured = row.classList.contains('featured-offer');
-                    var isDraft = row.classList.contains('draft-item');
-                    if(isFeatured) featuredCount++;
+                    if(row.classList.contains('featured-offer')) featuredCount++;
                     var badgeSpan = row.querySelector('.brand-badge, .offer-badge');
-                    var badgeText = badgeSpan ? badgeSpan.innerText : "";
-                    var bType = badgeSpan ? (badgeSpan.classList.contains('brand-badge') ? 'brand' : 'offer') : 'offer';
                     currentData[boxId].push({
-                        name: nameText, price: priceText, icon: iconText, badge: badgeText, badgeType: bType, featured: isFeatured, isDraft: isDraft
+                        name: row.querySelector('.item-name-text').innerText, price: row.querySelector('.item-price').innerText, icon: row.querySelector('.item-icon').innerText,
+                        featured: row.classList.contains('featured-offer'), isDraft: row.classList.contains('draft-item'), badge: badgeSpan ? badgeSpan.innerText : ""
                     });
                 });
             });
-
             document.getElementById('statsBadge').innerText = `🔥 المميزة: ${featuredCount}`;
-
-            var titlesAndLayout = {
-                h_title: document.getElementById('h-title').innerText,
-                h_sub: document.getElementById('h-sub').innerText,
-                h_badge: document.getElementById('h-badge').innerText,
-                footer: document.getElementById('main-footer').innerText,
-                fontSize: currentFontSize,
-                layout: {
-                    'col-1': Array.from(document.querySelectorAll('#col-1 .section-box')).map(b => b.id),
-                    'col-2': Array.from(document.querySelectorAll('#col-2 .section-box')).map(b => b.id),
-                    'col-3': Array.from(document.querySelectorAll('#col-3 .section-box')).map(b => b.id)
-                }
-            };
-
-            localStorage.setItem('market_popup_data_' + currentSeasonID, JSON.stringify(currentData));
-            localStorage.setItem('market_meta_' + currentSeasonID, JSON.stringify(titlesAndLayout));
-
             database.ref('seasons/' + currentSeasonID).set({
                 items: currentData,
-                meta: titlesAndLayout
-            }).catch(err => console.error("Firebase Error: ", err));
+                meta: { h_title: document.getElementById('h-title').innerText, h_sub: document.getElementById('h-sub').innerText, h_badge: document.getElementById('h-badge').innerText, footer: document.getElementById('main-footer').innerText, fontSize: currentFontSize }
+            });
         }
+
+        function resetToFactory() { if(confirm('هل أنت متأكد من إعادة ضبط كافة أصناف هذا الموسم للافتراضي؟')) { database.ref('seasons/' + currentSeasonID + '/items').set(exactCorrectData).then(() => { location.reload(); }); } }
 
         function loadData() {
-            buildIconGrid();
-            document.getElementById('activeSeasonIndicator').innerText = seasonNamesMap[currentSeasonID] || '📍 عرض مخصص نشط';
-
-            // الاعتماد المباشر الكامل على مصفوفة الداتا الصحيحة التي أرسلتها وإلغاء الاستنتاج التلقائي
-            database.ref('seasons/' + currentSeasonID).once('value')
-            .then((snapshot) => {
+            buildIconGrid(); loadSeasonDropdown();
+            database.ref('seasons/' + currentSeasonID).once('value').then((snapshot) => {
                 var cloudData = snapshot.val();
-                
-                // في حال وجود بيانات محفوظة سحابياً مسبقاً لهذا الموسم نستخدمها، وإلا نعرض التصنيف المرفق فوراً
                 var finalItems = (cloudData && cloudData.items) ? cloudData.items : exactCorrectData;
-                
-                renderPageFromData(finalItems, (cloudData && cloudData.meta) ? cloudData.meta : null);
-                
-                // حفظ البيانات المعدلة لضمان استقرارها وثباتها في الـ Firebase
-                if(!cloudData) {
-                    saveAllData();
+                var meta = cloudData ? cloudData.meta : null;
+                if(meta) {
+                    if(meta.h_title) document.getElementById('h-title').innerText = meta.h_title;
+                    if(meta.h_sub) document.getElementById('h-sub').innerText = meta.h_sub;
+                    if(meta.h_badge) document.getElementById('h-badge').innerText = meta.h_badge;
+                    if(meta.footer) document.getElementById('main-footer').innerText = meta.footer;
                 }
-            })
-            .catch((err) => {
-                console.warn("جاري الانتقال للذاكرة الافتراضية المصلحة:", err);
-                renderPageFromData(exactCorrectData, null);
-            });
-        }
-
-        function renderPageFromData(items, meta) {
-            if(meta) {
-                if(meta.h_title) document.getElementById('h-title').innerText = meta.h_title;
-                if(meta.h_sub) document.getElementById('h-sub').innerText = meta.h_sub;
-                if(meta.h_badge) document.getElementById('h-badge').innerText = meta.h_badge;
-                if(meta.footer) document.getElementById('main-footer').innerText = meta.footer;
-                if(meta.fontSize) {
-                    currentFontSize = parseInt(meta.fontSize);
-                    document.documentElement.style.setProperty('--base-font-size', currentFontSize + 'pt');
-                }
-                if(meta.layout) {
-                    Object.keys(meta.layout).forEach(colId => {
-                        var col = document.getElementById(colId);
-                        if(col) {
-                            meta.layout[colId].forEach(boxId => {
-                                var box = document.getElementById(boxId);
-                                if(box) col.appendChild(box);
-                            });
-                        }
-                    });
-                }
-            }
-
-            document.querySelectorAll('.item-table tbody').forEach(b => b.innerHTML = '');
-            if(items) {
-                Object.keys(items).forEach(secId => {
-                    if (items[secId] && typeof items[secId] === 'object') {
-                        var rowsArray = Array.isArray(items[secId]) ? items[secId] : Object.values(items[secId]);
-                        rowsArray.forEach(item => {
-                            if(item && item.name) renderNewRowElement(secId, item);
-                        });
-                    }
+                document.querySelectorAll('.item-table tbody').forEach(b => b.innerHTML = '');
+                Object.keys(finalItems).forEach(secId => {
+                    var rowsArray = Array.isArray(finalItems[secId]) ? finalItems[secId] : Object.values(finalItems[secId]);
+                    rowsArray.forEach(item => { if(item && item.name) renderNewRowElement(secId, item); });
                 });
-            }
-
-            var savedMode = localStorage.getItem('market_flyer_mode_' + currentSeasonID) || 'color';
-            changeMode(savedMode);
-            var featuredCount = document.querySelectorAll('.item-table tr.featured-offer').length;
-            document.getElementById('statsBadge').innerText = `🔥 المميزة: ${featuredCount}`;
-        }
-
-        function resetToFactory() {
-            if(confirm('هل تريد تصفير العروض وإعادة بناء القائمة الافتراضية الصحيحة؟')) {
-                localStorage.removeItem('market_popup_data_' + currentSeasonID);
-                localStorage.removeItem('market_meta_' + currentSeasonID);
-                database.ref('seasons/' + currentSeasonID).remove().then(() => location.reload());
-            }
-        }
-
-        document.querySelectorAll('.sortable-list').forEach(column => {
-            new Sortable(column, {
-                group: 'shared', animation: 150, ghostClass: 'sortable-ghost',
-                onEnd: function() { saveAllData(); }
             });
-        });
+        }
 
+        document.querySelectorAll('.sortable-list').forEach(column => { new Sortable(column, { group: 'shared', animation: 150, onEnd: function() { saveAllData(); } }); });
         window.addEventListener('DOMContentLoaded', loadData);
     </script>
 </body>
