@@ -52,7 +52,7 @@
         .header-badge-row { margin-top: 6px; }
         .header-container .badge { display: inline-block; padding: 4px 22px; font-size: 10pt; font-weight: bold; border-radius: 6px; outline: none; }
 
-        /* 🎨 الأطوار اللمسية (ملون / أبيض وأسود) */
+        /* 🎨 تصميم الشارات الملونه وطور العرض */
         body.color-mode .header-container { background: linear-gradient(135deg, #0f243e 0%, #1e3a5f 50%, #2a5282 100%); color: #ffffff; border-bottom: 4px solid #e2b43b; }
         body.color-mode .header-container p { color: #cbd5e1; }
         body.color-mode .header-container .badge { background-color: #e2b43b; color: #0f243e; }
@@ -62,8 +62,11 @@
         body.color-mode .dairy-title { background-color: #e2b43b; color: #0f243e; }
         body.color-mode .item-price { color: #16a34a; }
         body.color-mode .dairy-box .item-price { color: #b45309; }
-        body.color-mode .brand-badge { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
-        body.color-mode .offer-badge { color: #dc2626; background-color: #fee2e2; border: 1px solid #fca5a5; }
+        
+        /* شارات الألوان المطلوبة (براند وصنف) */
+        body.color-mode .brand-badge { background-color: #fee2e2; color: #dc3545; border: 1px solid #fca5a5; } /* حمراء للبراند */
+        body.color-mode .category-badge { background-color: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; } /* زرقاء لنوع الصنف */
+        
         body.color-mode tr.featured-offer { background-color: #fef08a !important; }
         body.color-mode tr.featured-offer .item-name-text::before { content: "🔥 "; font-size: 11pt; }
         body.color-mode tr.featured-offer .item-price { color: #dc2626 !important; font-weight: 900; }
@@ -78,8 +81,7 @@
         body.bw-mode .section-box, body.bw-mode .dairy-box { background-color: #ffffff; border: 1px solid #000000; }
         body.bw-mode .section-title, body.bw-mode .dairy-title { background-color: #000000; color: #ffffff; }
         body.bw-mode .item-price { color: #000000; }
-        body.bw-mode .brand-badge { background-color: #ffffff; color: #000000; border: 1px solid #000000; border-radius: 2px; }
-        body.bw-mode .offer-badge { color: #000000; background-color: transparent; border: 1px solid #000000; }
+        body.bw-mode .brand-badge, body.bw-mode .category-badge { background-color: #ffffff; color: #000000; border: 1px solid #000000; border-radius: 2px; }
         body.bw-mode tr.featured-offer { background-color: #ffffff !important; outline: 2px dashed #000000; outline-offset: -2px; }
         body.bw-mode tr.featured-offer .item-name-text::before { content: "★ "; }
         body.bw-mode .footer-container { color: #000000; background-color: #ffffff; border: 1px solid #000000; }
@@ -116,7 +118,7 @@
         .icon-opt { text-align: center; font-size: 12pt; cursor: pointer; padding: 2px; border-radius: 4px; }
         .icon-opt.selected { background-color: #fef08a; border: 1px solid #e2b43b; }
 
-        .brand-badge, .offer-badge { display: inline-block; padding: 1px 6px; font-size: 0.85em; font-weight: bold; border-radius: 4px; margin-right: 4px; }
+        .brand-badge, .category-badge { display: inline-block; padding: 1px 6px; font-size: 0.85em; font-weight: bold; border-radius: 4px; margin-right: 4px; }
         .footer-container { text-align: center; font-size: 8.5pt; margin-top: 5px; padding: 6px; border-radius: 8px; font-weight: bold; outline: none; }
 
         @media print {
@@ -157,9 +159,11 @@
         <h3 id="popupTitle">📝 تعديل بيانات الصنف</h3>
         <div class="form-group"><label>اسم المنتج:</label><input type="text" id="popItemName"></div>
         <div class="form-group"><label>السعر / العرض الجديد:</label><input type="text" id="popItemPrice"></div>
-        <div class="form-group"><label>نص الشارة (اختياري):</label><input type="text" id="popItemBadge"></div>
-        <div class="form-group"><label>نوع الشارة:</label><select id="popItemBadgeType"><option value="offer">شارة عرض حمراء</option><option value="brand">شارة شركة زرقاء</option></select></div>
-        <div class="form-group"><label>الأيقونة:</label><div class="icon-selector-grid" id="popIconGrid"></div></div>
+        
+        <div class="form-group"><label>اسم البراند (شارة حمراء):</label><input type="text" id="popBrandBadge" placeholder="مثال: البشيتي، أبو غربية..."></div>
+        <div class="form-group"><label>نوع الصنف (شارة زرقاء):</label><input type="text" id="popCategoryBadge" placeholder="مثال: نخب أول، حجم عائلي..."></div>
+        
+        <div class="form-group"><label>الأيقونة المختصرة:</label><div class="icon-selector-grid" id="popIconGrid"></div></div>
         <div class="popup-actions">
             <button class="popup-btn btn-save" onclick="saveItemFromPopup()">حفظ ✓</button>
             <button class="popup-btn btn-cancel" onclick="closeItemPopup()">إلغاء ↩️</button>
@@ -255,91 +259,91 @@
         const urlParams = new URLSearchParams(window.location.search);
         var currentSeasonID = urlParams.get('season') || 'weekly_offers'; 
         var currentFontSize = 9; 
-        const supportedIcons = ["🛒","🥛","🥣","🫙","☕","🌿","🥤","🍚","🛢️","🌾","🥡","🍬","🧂","🫘","🍝","🥫","🐟","🌽","🍄","🧁","🍪","🧼","🧴","🧻","🧺","🧹","🍽️","🛍️","🍯","🌶️","🍜","🍅","🥒","🪥","👶"];
+        const supportedIcons = ["🛒","🥛","🥣","🫙","☕","🌿","🥤","🍚","🛢️","🌾","🥡","🍬","🧂","𫦪","🍝","🥫","🐟","🌽","🍄","🧁","🍪","🧼","🧴","🧻","🧺","🧹","🍽️","🛍️","🍯","🌶️","🍜","🍅","🥒","🪥","👶"];
         var currentEditingRow = null; var currentSectionForAdd = null; var selectedIconInPopup = "🛒";
 
-        // قاعدة البيانات الشاملة المدعومة بكافة السلع من البروشور المرفق
+        // الأصناف الافتراضية محملة ببيانات الشارات المفصولة
         const exactCorrectData = {
             "sec-dairy": [
-                { name: "علبة لبنة 180 غم (زعتر أو شطة أو عمية)", price: "كل 3 بـ 10 شيقل", icon: "🥛" },
+                { name: "علبة لبنة 180 غم", price: "كل 3 بـ 10 شيقل", icon: "🥛", categoryBadge: "زعتر/شطة/عمية" },
                 { name: "علبة لبنة 400 غم", price: "5 شيقل فقط", icon: "🥛" },
                 { name: "كاسة لبن 1 كيلو", price: "5 شيقل فقط", icon: "🥛" },
                 { name: "كيس لبنة 400 غم", price: "5 شيقل فقط", icon: "🥛" },
                 { name: "مرتبان لبن 4 كيلو", price: "15 شيقل فقط", icon: "🥛" }
             ],
             "sec-rice": [
-                { name: "أرز حبة قصيرة 5 كيلو أبو غربية", price: "34 شيقل فقط", icon: "🌾" },
-                { name: "أرز بسمتي 5 كيلو البشيتي", price: "26 شيقل فقط", icon: "🌾" },
-                { name: "أرز 5 كيلو الشيف بوندي", price: "28 شيقل فقط", icon: "🌾" },
-                { name: "أرز بسمتي 5 كيلو الضيافة", price: "27 شيقل فقط", icon: "🌾" },
-                { name: "أرز بسمتي 5 كيلو عبد السلام", price: "25 شيقل فقط", icon: "🌾" },
-                { name: "أرز 5 كيلو صنوايت", price: "35 شيقل فقط", icon: "🌾" },
+                { name: "أرز حبة قصيرة 5 كيلو", price: "34 شيقل فقط", icon: "🌾", brandBadge: "أبو غربية" },
+                { name: "أرز بسمتي 5 كيلو", price: "26 شيقل فقط", icon: "🌾", brandBadge: "البشيتي" },
+                { name: "أرز 5 كيلو", price: "28 شيقل فقط", icon: "🌾", brandBadge: "الشيف بوندي" },
+                { name: "أرز بسمتي 5 كيلو", price: "27 شيقل فقط", icon: "🌾", brandBadge: "الضيافة" },
+                { name: "أرز بسمتي 5 كيلو", price: "25 شيقل فقط", icon: "🌾", brandBadge: "عبد السلام" },
+                { name: "أرز 5 كيلو", price: "35 شيقل فقط", icon: "🌾", brandBadge: "صنوايت" },
                 { name: "زيت دوار شمس 3 لتر", price: "21 شيقل فقط", icon: "🛢️" },
                 { name: "زيت دوار شمس 5 لتر", price: "30 شيقل فقط", icon: "🛢️" },
-                { name: "طحين زيرو حيفا نخب أول 25 ك", price: "53 شيقل فقط", icon: "🥡" },
-                { name: "طحين 1 كيلو الفاخر", price: "كل 5 بـ 11 شيقل", icon: "🥡" },
+                { name: "طحين زيرو حيفا", price: "53 شيقل فقط", icon: "🥡", categoryBadge: "نخب أول 25ك" },
+                { name: "طحين 1 كيلو", price: "كل 5 بـ 11 شيقل", icon: "🥡", brandBadge: "الفاخر" },
                 { name: "سكر", price: "كل 4 بـ 11 شيقل", icon: "🍚" }
             ],
             "sec-legumes": [
                 { name: "تمر عجوة جولان 1 كيلو", price: "14 شيقل فقط", icon: "🍯" },
-                { name: "فريكة النخيل الفاخرة", price: "8.5 شيقل فقط", icon: "🌾" },
+                { name: "فريكة", price: "8.5 شيقل فقط", icon: "🌾", brandBadge: "النخيل الفاخرة" },
                 { name: "عدس حبة كبيرة", price: "5.5 شيقل فقط", icon: "🫘" },
                 { name: "عدس حبة صغيرة", price: "5.5 شيقل فقط", icon: "🫘" },
                 { name: "برغل ناعم", price: "4.5 شيقل فقط", icon: "🌾" },
-                { name: "ذرة بشار نخب أول", price: "5.5 شيقل فقط", icon: "🌽" },
+                { name: "ذرة بشار", price: "5.5 شيقل فقط", icon: "🌽", categoryBadge: "نخب أول" },
                 { name: "طحينية الشلة 450 غم", price: "7 شيقل فقط", icon: "🫙" },
-                { name: "شعرية الوطنية", price: "كل 9 بـ 10 شيقل", icon: "🍝" },
-                { name: "شعرية أبو عيطة", price: "كل 7 بـ 10 شيقل", icon: "🍝" },
-                { name: "معكرونة أبو عيطة", price: "كل 5 بـ 11 شيقل", icon: "🍝" },
+                { name: "شعرية", price: "كل 9 بـ 10 شيقل", icon: "🍝", brandBadge: "الوطنية" },
+                { name: "شعرية", price: "كل 7 بـ 10 شيقل", icon: "🍝", brandBadge: "أبو عيطة" },
+                { name: "معكرونة", price: "كل 5 بـ 11 شيقل", icon: "🍝", brandBadge: "أبو عيطة" },
                 { name: "سميد حيفا 1 كيلو", price: "كل 3 بـ 11 شيقل", icon: "🍚" },
                 { name: "خميرة صغيرة فورية", price: "كل 4 بـ 10 شيقل", icon: "🧂" },
-                { name: "ماجي مكعبات باكيت كامل", price: "كل 6 بـ 10 شيقل", icon: "🥣" },
+                { name: "ماجي مكعبات", price: "كل 6 بـ 10 شيقل", icon: "🥣", categoryBadge: "باكيت كامل" },
                 { name: "بهارات علي مشكل", price: "كل 3 بـ 10 شيقل", icon: "🧂" },
                 { name: "ملح طعام أكياس", price: "كل 3 بـ 4 شيقل", icon: "🧂" },
                 { name: "نشا عبوة كرتون", price: "كل 4 بـ 11 شيقل", icon: "🥣" }
             ],
             "sec-drinks": [
-                { name: "نسكافيه 24 حبة عبوة", price: "14 شيقل فقط", icon: "☕" },
-                { name: "شاي ليبتون أحمر", price: "10 شيقل فقط", icon: "☕" },
-                { name: "شاي الجنان عبوة", price: "6 شيقل فقط", icon: "☕" },
-                { name: "مبيّض مرينا عبوة", price: "6 شيقل فقط", icon: "🥛" },
-                { name: "بسكويت شاي حجم كبير", price: "حبتين بـ 15 شيقل", icon: "🍪" },
-                { name: "بيجلا حجم كبير", price: "كل 10 بـ 6 شيقل", icon: "🍪" }
+                { name: "نسكافيه 24 حبة", price: "14 شيقل فقط", icon: "☕", categoryBadge: "عبوة" },
+                { name: "شاي أحمر", price: "10 شيقل فقط", icon: "☕", brandBadge: "ليبتون" },
+                { name: "شاي عبوة", price: "6 شيقل فقط", icon: "☕", brandBadge: "الجنان" },
+                { name: "مبيّض عبوة", price: "6 شيقل فقط", icon: "🥛", brandBadge: "مرينا" },
+                { name: "بسكويت شاي", price: "حبتين بـ 15 شيقل", icon: "🍪", categoryBadge: "حجم كبير" },
+                { name: "بيجلا", price: "كل 10 بـ 6 شيقل", icon: "🍪", categoryBadge: "حجم كبير" }
             ],
             "sec-cans": [
-                { name: "تونا قطع أبو غربية أو البشيتي", price: "كل 4 بـ 17 شيقل", icon: "🐟" },
-                { name: "صلصة بندورة كرتونة 24 حبة", price: "14 شيقل فقط", icon: "🥫" },
+                { name: "تونا قطع", price: "كل 4 بـ 17 شيقل", icon: "🐟", brandBadge: "أبو غربية/البشيتي" },
+                { name: "صلصة بندورة", price: "14 شيقل فقط", icon: "🥫", categoryBadge: "كرتونة 24 حبة" },
                 { name: "حمص حب بريحان 550 غم", price: "كل 3 بـ 11 شيقل", icon: "🫘" },
                 { name: "مخلل خيار علب", price: "كل 3 بـ 11 شيقل", icon: "🥒" },
-                { name: "حمص البيروني علب", price: "كل 3 بـ 11 شيقل", icon: "🫘" },
+                { name: "حمص علب", price: "كل 3 بـ 11 شيقل", icon: "🫘", brandBadge: "البيروني" },
                 { name: "قشطة علب فاخرة", price: "كل 5 بـ 11 شيقل", icon: "🥣" },
-                { name: "صلصة أول قطفة ممتازة", price: "كل 6 بـ 10 شيقل", icon: "🥫" },
+                { name: "صلصة ممتازة", price: "كل 6 بـ 10 شيقل", icon: "🥫", brandBadge: "أول قطفة" },
                 { name: "صلصة بندورة 400 غم", price: "كل 4 بـ 10 شيقل", icon: "🥫" },
                 { name: "فطر علب كامل فاخر", price: "كل 4 بـ 10 شيقل", icon: "🍄" },
-                { name: "سردين العوافي بالزيت", price: "كل 4 بـ 11 شيقل", icon: "🐟" },
+                { name: "سردين بالزيت", price: "كل 4 بـ 11 شيقل", icon: "🐟", brandBadge: "العوافي" },
                 { name: "ذرة علب حلوة", price: "كل 3 بـ 9 شيقل", icon: "🌽" },
                 { name: "فاصولياء علب مطبوخة", price: "كل 3 بـ 10 شيقل", icon: "🫘" },
                 { name: "فول علب مدمس خلطة", price: "كل 6 بـ 10 شيقل", icon: "🫘" },
-                { name: "كاتشب عبوة عائلية", price: "كل 3 بـ 11 شيقل", icon: "🍅" }
+                { name: "كاتشب", price: "كل 3 بـ 11 شيقل", icon: "🍅", categoryBadge: "عبوة عائلية" }
             ],
             "sec-cleaners": [
                 { name: "محارم تواليت مضغوط 2.5 ك", price: "26 شيقل فقط", icon: "🧻" },
-                { name: "فوط بامبرز أطفال", price: "25 شيقل فقط", icon: "👶" },
-                { name: "شامبو هيد اند شولدرز 400 مل", price: "14 شيقل فقط", icon: "🧴" },
-                { name: "شامبو صانصيلك 600 مل", price: "13 شيقل فقط", icon: "🧴" },
+                { name: "فوط أطفال", price: "25 شيقل فقط", icon: "👶", brandBadge: "بامبرز" },
+                { name: "شامبو 400 مل", price: "14 شيقل فقط", icon: "🧴", brandBadge: "هيد اند شولدرز" },
+                { name: "شامبو 600 مل", price: "13 شيقل فقط", icon: "🧴", brandBadge: "صانصيلك" },
                 { name: "محارم ناعم 3 طبقات 800 غم", price: "8 شيقل فقط", icon: "🧻" },
-                { name: "أولويز ديل عبوة اقتصادية", price: "6.5 شيقل فقط", icon: "🧴" },
-                { name: "معجون أسنان سيجنال كبير", price: "6 شيقل فقط", icon: "🪥" },
+                { name: "فوط صحية اقتصادية", price: "6.5 شيقل فقط", icon: "🧴", brandBadge: "أولويز" },
+                { name: "معجون أسنان كبير", price: "6 شيقل فقط", icon: "🪥", brandBadge: "سيجنال" },
                 { name: "مسحوق غسيل عبوة 1 كيلو", price: "5 شيقل فقط", icon: "🧼" },
                 { name: "فوط صحية متنوعة", price: "كل 4 بـ 11 شيقل", icon: "🧴" },
-                { name: "صابون سبعات أو دوف ناعم", price: "كل 4 بـ 11 شيقل", icon: "🧼" },
+                { name: "صابون ناعم", price: "كل 4 بـ 11 شيقل", icon: "🧼", brandBadge: "سبعات/دوف" },
                 { name: "صابون سائل للأيادي", price: "كل 3 بـ 9 شيقل", icon: "🧼" }
             ],
             "sec-plastics": [
                 { name: "قصدير المنيوم فاخر", price: "5 شيقل فقط", icon: "🍽️" },
                 { name: "مكنسة ناعمة ممتازة", price: "4 شيقل فقط", icon: "🧹" },
                 { name: "قشاطة أرضيات متينة", price: "3 شيقل فقط", icon: "🧹" },
-                { name: "كاسات كرتون حجم كبير", price: "كل 4 بـ 11 شيقل", icon: "🥤" },
+                { name: "كاسات كرتون", price: "كل 4 بـ 11 شيقل", icon: "🥤", categoryBadge: "حجم كبير" },
                 { name: "صحون مفرود وسط بلاستيك", price: "كل 6 بـ 10 شيقل", icon: "🍽️" },
                 { name: "كاسات قهوة كرتون", price: "كل 6 بـ 10 شيقل", icon: "☕" },
                 { name: "كاسات بلاستيك متينة", price: "كل 5 بـ 10 شيقل", icon: "🥤" },
@@ -408,32 +412,50 @@
         function changeMode(mode) { document.body.className = (mode === 'color') ? 'color-mode' : 'bw-mode'; document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active')); document.querySelector(`.mode-btn[data-mode="${mode}"]`).classList.add('active'); }
         function filterItems() { var input = document.getElementById('searchBar').value.toLowerCase(); document.querySelectorAll('.item-table tr').forEach(row => { row.style.display = row.querySelector('.item-name-text').innerText.toLowerCase().includes(input) ? '' : 'none'; }); }
 
+        // فتح الـ Popup مع تعبئة خانات الشارات الملونة
         function openPopupForEdit(row) {
             currentEditingRow = row; currentSectionForAdd = null; document.getElementById('popupTitle').innerText = "📝 تعديل بيانات الصنف";
-            document.getElementById('popItemName').value = row.querySelector('.item-name-text').innerText; document.getElementById('popItemPrice').value = row.querySelector('.item-price').innerText;
-            var badgeSpan = row.querySelector('.brand-badge, .offer-badge'); document.getElementById('popItemBadge').value = badgeSpan ? badgeSpan.innerText : "";
+            document.getElementById('popItemName').value = row.querySelector('.item-name-text').innerText; 
+            document.getElementById('popItemPrice').value = row.querySelector('.item-price').innerText;
+            
+            var bBadge = row.querySelector('.brand-badge');
+            var cBadge = row.querySelector('.category-badge');
+            document.getElementById('popBrandBadge').value = bBadge ? bBadge.innerText : "";
+            document.getElementById('popCategoryBadge').value = cBadge ? cBadge.innerText : "";
+            
             document.getElementById('popupOverlay').style.display = 'block'; document.getElementById('itemPopup').style.display = 'block';
         }
 
         function openPopupForAdd(sectionId) {
             currentEditingRow = null; currentSectionForAdd = sectionId; document.getElementById('popupTitle').innerText = "➕ إضافة صنف جديد";
-            document.getElementById('popItemName').value = ""; document.getElementById('popItemPrice').value = ""; document.getElementById('popItemBadge').value = "";
+            document.getElementById('popItemName').value = ""; document.getElementById('popItemPrice').value = ""; 
+            document.getElementById('popBrandBadge').value = ""; document.getElementById('popCategoryBadge').value = "";
             document.getElementById('popupOverlay').style.display = 'block'; document.getElementById('itemPopup').style.display = 'block';
         }
         function closeItemPopup() { document.getElementById('popupOverlay').style.display = 'none'; document.getElementById('itemPopup').style.display = 'none'; }
 
+        // حفظ الصنف وبناء الشارات الملونة ديناميكياً داخل الجدول
         function saveItemFromPopup() {
-            var name = document.getElementById('popItemName').value.trim() || "صنف بدون اسم"; var price = document.getElementById('popItemPrice').value.trim() || "0 شيقل";
-            var badgeText = document.getElementById('popItemBadge').value.trim(); var badgeType = document.getElementById('popItemBadgeType').value;
-            var badgeHTML = ''; if(badgeText) { var cls = (badgeType === 'brand') ? 'brand-badge' : 'offer-badge'; badgeHTML = ` <span class="${cls}">${badgeText}</span>`; }
+            var name = document.getElementById('popItemName').value.trim() || "صنف بدون اسم"; 
+            var price = document.getElementById('popItemPrice').value.trim() || "0 شيقل";
+            var brandText = document.getElementById('popBrandBadge').value.trim();
+            var catText = document.getElementById('popCategoryBadge').value.trim();
+            
+            var badgesHTML = '';
+            if(brandText) badgesHTML += ` <span class="brand-badge">${brandText}</span>`;
+            if(catText) badgesHTML += ` <span class="category-badge">${catText}</span>`;
             
             if(currentEditingRow) {
-                currentEditingRow.querySelector('.item-name-text').innerText = name; currentEditingRow.querySelector('.item-price').innerText = price;
+                currentEditingRow.querySelector('.item-name-text').innerText = name; 
+                currentEditingRow.querySelector('.item-price').innerText = price;
                 currentEditingRow.querySelector('.item-icon').innerText = selectedIconInPopup;
-                var existingBadge = currentEditingRow.querySelector('.brand-badge, .offer-badge'); if(existingBadge) existingBadge.remove();
-                if(badgeHTML) currentEditingRow.querySelector('.item-name').insertAdjacentHTML('beforeend', badgeHTML);
+                
+                // إزالة الشارات القديمة وإضافة الجديدة المحدثة
+                var oldBadges = currentEditingRow.querySelectorAll('.brand-badge, .category-badge');
+                oldBadges.forEach(b => b.remove());
+                if(badgesHTML) currentEditingRow.querySelector('.item-name').insertAdjacentHTML('beforeend', badgesHTML);
             } else if(currentSectionForAdd) {
-                renderNewRowElement(currentSectionForAdd, { name: name, price: price, icon: selectedIconInPopup, badge: badgeText, badgeType: badgeType });
+                renderNewRowElement(currentSectionForAdd, { name: name, price: price, icon: selectedIconInPopup, brandBadge: brandText, categoryBadge: catText });
             }
             saveAllData(); closeItemPopup();
         }
@@ -441,13 +463,17 @@
         function renderNewRowElement(sectionId, itemObj) {
             var tbody = document.querySelector(`#${sectionId} .item-table tbody`); if(!tbody) return;
             var tr = document.createElement('tr'); if(itemObj.featured) tr.classList.add('featured-offer'); if(itemObj.isDraft) tr.classList.add('draft-item');
-            var badgeHTML = ''; if(itemObj.badge) { var cls = (itemObj.badgeType === 'brand') ? 'brand-badge' : 'offer-badge'; badgeHTML = ` <span class="${cls}">${itemObj.badge}</span>`; }
+            
+            var badgesHTML = '';
+            if(itemObj.brandBadge) badgesHTML += ` <span class="brand-badge">${itemObj.brandBadge}</span>`;
+            if(itemObj.categoryBadge) badgesHTML += ` <span class="category-badge">${itemObj.categoryBadge}</span>`;
+            
             tr.innerHTML = `
                 <td class="item-name">
                     <button class="feature-toggle-btn" title="مميز" onclick="event.stopPropagation(); toggleFeature(this)">🔥</button>
                     <button class="feature-toggle-btn" style="background:#e2e8f0" title="مسودة" onclick="event.stopPropagation(); toggleDraft(this)">📝</button>
                     <button class="delete-item-btn" title="حذف" onclick="event.stopPropagation(); deleteRow(this)">❌</button>
-                    <span class="item-icon">${itemObj.icon || '🛒'}</span><span class="item-name-text">${itemObj.name}</span>${badgeHTML}
+                    <span class="item-icon">${itemObj.icon || '🛒'}</span><span class="item-name-text">${itemObj.name}</span>${badgesHTML}
                 </td><td class="item-price">${itemObj.price}</td>
             `;
             tr.onclick = function() { openPopupForEdit(tr); }; tbody.appendChild(tr);
@@ -457,16 +483,23 @@
         function toggleDraft(btn) { btn.closest('tr').classList.remove('featured-offer'); btn.closest('tr').classList.toggle('draft-item'); saveAllData(); }
         function deleteRow(btn) { if(confirm('حذف هذا الصنف؟')) { btn.closest('tr').remove(); saveAllData(); } }
 
+        // حفظ الشارات داخل السحابة مع الحفاظ على الهيكل التنظيمي للبيانات
         function saveAllData() {
             var currentData = {}; var featuredCount = 0;
             document.querySelectorAll('.section-box').forEach(box => {
                 var boxId = box.id; currentData[boxId] = [];
                 box.querySelectorAll('.item-table tr').forEach(row => {
                     if(row.classList.contains('featured-offer')) featuredCount++;
-                    var badgeSpan = row.querySelector('.brand-badge, .offer-badge');
+                    var bBadge = row.querySelector('.brand-badge');
+                    var cBadge = row.querySelector('.category-badge');
                     currentData[boxId].push({
-                        name: row.querySelector('.item-name-text').innerText, price: row.querySelector('.item-price').innerText, icon: row.querySelector('.item-icon').innerText,
-                        featured: row.classList.contains('featured-offer'), isDraft: row.classList.contains('draft-item'), badge: badgeSpan ? badgeSpan.innerText : ""
+                        name: row.querySelector('.item-name-text').innerText, 
+                        price: row.querySelector('.item-price').innerText, 
+                        icon: row.querySelector('.item-icon').innerText,
+                        featured: row.classList.contains('featured-offer'), 
+                        isDraft: row.classList.contains('draft-item'), 
+                        brandBadge: bBadge ? bBadge.innerText : "",
+                        categoryBadge: cBadge ? cBadge.innerText : ""
                     });
                 });
             });
