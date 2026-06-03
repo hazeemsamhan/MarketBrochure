@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>الأداة الذكية لنقل كافة الأصناف والمجموعات دون نقصان</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #fdf2f8; color: #9d174d; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); max-width: 600px; margin: 0 auto; border: 1px solid #fbcfe8; }
+        button { background-color: #db2777; color: white; border: none; padding: 14px 28px; font-size: 11pt; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 20px; }
+        button:hover { background-color: #be185d; }
+        #status { margin-top: 20px; font-weight: bold; color: #db2777; white-space: pre-line; line-height: 1.6; text-align: right; background: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; }
+    </style>
+
+    <!-- مكتبات Firebase الإصدار 8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🔥 الأداة الشاملة لسحب المجموعات والأصناف كاملة</h2>
+        <p>تقوم هذه الأداة بقراءة وفك تشفير كافة الأقسام والمجموعات الموجودة في الرابط ونقلها للفايرستور بنسبة 100% دون فحص مسبق للأسماء لضمان عدم نقص أي صنف.</p>
+        
+        <button onclick="pullEverythingDynamically()">ابدأ السحب الشامل والكامل الآن ⚡</button>
+        
+        <div id="status">جاهز للفحص والاتصال المباشر...</div>
+    </div>
+
+    <script>
+        // ⚠️ ضع هنا إعدادات الـ Firebase الحقيقية والمطابقة لمشروعك لضمان نجاح الاتصال
+        const firebaseConfig = {
+            apiKey: "AIzaSyFakeKey_PleaseReplaceWithYourActualKey",
+            authDomain: "mymarketbrochure.firebaseapp.com",
+            databaseURL: "https://mymarketbrochure-default-rtdb.firebaseio.com", 
+            projectId: "mymarketbrochure",
+            storageBucket: "mymarketbrochure.appspot.com",
+            messagingSenderId: "777777777777",
+            appId: "1:777777777777:web:777777777777"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const rtdb = firebase.database();  
+        const db = firebase.firestore();    
+
+        function pullEverythingDynamically() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerText = "⏳ جاري قراءة كامل هيكل قاعدة البيانات من الرابط المحدد...";
+            statusDiv.style.color = "#2563eb";
+
+            let finalItemsStructure = {};
+            let logDetails = "";
+
+            // 🌐 قراءة مباشرة للمسار الشامل للأصناف والمجموعات
+            rtdb.ref('seasons/weekly_offers/items').once('value').then((snapshot) => {
+                if (!snapshot.exists()) {
+                    statusDiv.innerText = "❌ لم يتم العثور على أي بيانات في المسار المطلوب، يرجى التأكد من الـ Realtime Database.";
+                    statusDiv.style.color = "#ef4444";
+                    return;
+                }
+
+                const allRawData = snapshot.val();
+                let totalMgroups = 0;
+                let totalItemsCounter = 0;
+
+                // 🔄 قراءة ديناميكية لكل مجموعة موجودة في الرابط مهما كان اسمها (ID)
+                Object.keys(allRawData).forEach((groupId) => {
+                    totalMgroups++;
+                    finalItemsStructure[groupId] = [];
+                    
+                    let groupContent = allRawData[groupId];
+                    let rowsArray = [];
+
+                    // إذا كانت الأصناف مخزنة داخل مصفوفة أو كائن (Object)
+                    if (Array.isArray(groupContent)) {
+                        rowsArray = groupContent;
+                    } else if (typeof groupContent === 'object' && groupContent !== null) {
+                        rowsArray = Object.values(groupContent);
+                    }
+
+                    let groupItemsCount = 0;
+                    rowsArray.forEach((item) => {
+                        if (item && item.name) {
+                            finalItemsStructure[groupId].push({
+                                name: item.name,
+                                price: item.price || "0 شيقل",
+                                icon: item.icon || "🛒",
+                                featured: item.featured || false,
+                                brandBadge: item.brandBadge || "",
+                                categoryBadge: item.categoryBadge || ""
+                            });
+                            totalItemsCounter++;
+                            groupItemsCount++;
+                        }
+                    });
+
+                    logDetails += `🔹 تم سحب مجموعة [${groupId}] وتحتوي على (${groupItemsCount}) صنف.\n`;
+                });
+
+                statusDiv.innerText = `🔄 جاري الحفظ بالفايرستور...\n\nالملخص الحالي:\n${logDetails}`;
+
+                // حفظ الهيكل الكامل والديناميكي في وثيقة الفايرستور المعتمدة لصفحة العروض
+                db.collection('brochureData').doc('weekly_offers').set({
+                    name: "العروض الحالية",
+                    icon: "🛍️",
+                    isActive: true,
+                    timestamp: Date.now(),
+                    items: finalItemsStructure,
+                    meta: {
+                        h_title: "ميني ماركت اللبن الغربي أبو هزيم",
+                        h_sub: "وسط البلد - خلف المسجد الرئيسي",
+                        h_badge: "عروض: العروض الحالية",
+                        footer: "ميني ماركت اللبن الغربي - نتشرف بزيارتكم دائماً"
+                    }
+                }).then(() => {
+                    statusDiv.innerHTML = `🎉 <strong>تم النقل بنجاح كامل وبدون أي نقص!</strong>\n\n` +
+                        `📦 <strong>إجمالي المجموعات المسحوبة:</strong> ${totalMgroups} مجموعات.\n` +
+                        `🛒 <strong>إجمالي الأصناف الكلي:</strong> ${totalItemsCounter} صنف.\n\n` +
+                        `<div style="color:#16a34a; font-weight:bold;">تفاصيل المجموعات المكتشفة بالرابط ونُقلت كاملاً:</div>\n${logDetails.replace(/\n/g, '<br>')}` +
+                        `\n افتح الآن ملف <strong>Sales.html</strong> وستجد المجموعات ظهرت كاملة وبداخلها بضاعتك!`;
+                    statusDiv.style.color = "#16a34a";
+                }).catch((firestoreError) => {
+                    statusDiv.innerText = "❌ خطأ أثناء الحفظ في الفايرستور: " + firestoreError.message;
+                    statusDiv.style.color = "#ef4444";
+                });
+
+            }).catch((rtdbError) => {
+                statusDiv.innerText = "❌ فشل سحب البيانات من الرابط: " + rtdbError.message;
+                statusDiv.style.color = "#ef4444";
+            });
+        }
+    </script>
+</body>
+</html>

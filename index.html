@@ -3,416 +3,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم العروض الموسمية - ميني ماركت اللبن الغربي</title>
+    <title>لوحة تحكم العروض الموسمية الاحترافية - ميني ماركت اللبن الغربي</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap');
+
         :root {
-            --primary-color: #1e3a5f;
-            --primary-dark: #0f172a;
-            --accent-color: #e2b43b;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #334155;
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            --accent: #f59e0b;
+            --accent-hover: #d97706;
+            --bg-main: #f1f5f9;
+            --surface: #ffffff;
+            --text-main: #1e293b;
             --text-muted: #64748b;
-            --danger-color: #ef4444;
-            --success-color: #16a34a;
+            --danger: #ef4444;
+            --success: #10b981;
+            --success-bg: #ecfdf5;
+            --glass: rgba(255, 255, 255, 0.75);
+            --radius-lg: 18px;
+            --radius-md: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
+        *, *::before, *::after { box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0;
-            direction: rtl;
+            font-family: 'Cairo', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at top left, #f8fafc, #e2e8f0);
+            color: var(--text-main); margin: 0; padding: 0; direction: rtl; min-height: 100vh;
         }
 
-        .dashboard-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px 20px;
+        .app-layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+
+        .sidebar {
+            background-color: var(--primary); color: #ffffff; padding: 30px 20px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            border-left: 1px solid rgba(255,255,255,0.05); position: sticky; top: 0; height: 100vh;
         }
 
-        /* الهيدر العصري */
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
-            color: #ffffff;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
-            margin-bottom: 30px;
-            border-bottom: 4px solid var(--accent-color);
+        .sidebar-brand h2 { margin: 0; font-size: 15pt; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .sidebar-brand p { margin: 5px 0 0 0; font-size: 9pt; color: #94a3b8; }
+        .sidebar-menu { margin-top: 40px; flex-grow: 1; }
+        .menu-title { font-size: 8.5pt; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 15px; font-weight: 700; }
+
+        .btn-side-add {
+            width: 100%; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+            color: var(--primary); border: none; padding: 14px; font-size: 10.5pt; font-weight: 700;
+            border-radius: var(--radius-md); cursor: pointer; transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-side-add:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5); }
+
+        .backup-section { background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .btn-backup-outline {
+            width: 100%; background: transparent; color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 10px; font-size: 9.5pt; border-radius: 8px; cursor: pointer; margin-bottom: 8px; transition: var(--transition); font-family: 'Cairo', sans-serif;
+        }
+        .btn-backup-outline:hover { background: rgba(255, 255, 255, 0.07); color: #fff; border-color: rgba(255, 255, 255, 0.3); }
+
+        .main-content { padding: 40px; overflow-y: auto; }
+        .top-navbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; }
+        .page-title h1 { margin: 0; font-size: 20pt; font-weight: 800; color: var(--primary); }
+        .page-title p { margin: 5px 0 0 0; color: var(--text-muted); font-size: 10pt; }
+
+        .stats-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 35px; }
+        .stat-capsule {
+            background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: var(--radius-md); padding: 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(15, 23, 42, 0.03);
         }
 
-        .header-info h1 {
-            margin: 0;
-            font-size: 22pt;
-            font-weight: 800;
-            letter-spacing: -0.5px;
+        .stat-capsule-icon {
+            font-size: 20pt; background: #fff; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);
         }
 
-        .header-info p {
-            margin: 8px 0 0 0;
-            color: #cbd5e1;
-            font-size: 11pt;
+        .stat-capsule-data h3 { margin: 0; font-size: 9.5pt; color: var(--text-muted); font-weight: 600; }
+        .stat-capsule-data p { margin: 2px 0 0 0; font-size: 15pt; font-weight: 800; color: var(--primary); }
+
+        .controls-card {
+            background: var(--surface); padding: 20px; border-radius: var(--radius-md); box-shadow: 0 4px 6px rgba(0,0,0,0.01);
+            border: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: center; margin-bottom: 35px;
         }
 
-        .btn-add-season {
-            background-color: var(--accent-color);
-            color: var(--primary-dark);
-            border: none;
-            padding: 12px 24px;
-            font-size: 11pt;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(226, 180, 59, 0.3);
+        .search-wrapper { position: relative; flex-grow: 1; }
+        .search-field {
+            width: 100%; padding: 12px 45px 12px 15px; font-size: 10.5pt; border: 1px solid #cbd5e1;
+            border-radius: 10px; outline: none; transition: var(--transition); font-family: 'Cairo', sans-serif; background-color: #f8fafc;
+        }
+        .search-field:focus { border-color: var(--accent); background-color: #fff; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12); }
+        .search-icon { position: absolute; top: 50%; right: 15px; transform: translateY(-50%); color: var(--text-muted); }
+
+        .select-filter {
+            padding: 12px 20px; font-size: 10pt; border: 1px solid #cbd5e1; border-radius: 10px;
+            background-color: #fff; outline: none; cursor: pointer; font-weight: 600; font-family: 'Cairo', sans-serif; color: var(--text-main);
         }
 
-        .btn-add-season:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(226, 180, 59, 0.5);
-            background-color: #ffcc44;
+        .seasons-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
+
+        .creative-card {
+            background: var(--surface); border-radius: var(--radius-lg); border: 1px solid #e2e8f0; padding: 25px;
+            position: relative; display: flex; flex-direction: column; justify-content: space-between; transition: var(--transition); box-shadow: 0 4px 6px rgba(0,0,0,0.01);
         }
 
-        /* 📊 قسم الإحصائيات المطور (يشمل نقطة 4) */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
+        .creative-card:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.06), 0 10px 10px -5px rgba(0,0,0,0.04); border-color: #cbd5e1; }
+        .creative-card.active-brochure { border: 2px solid var(--success); background: linear-gradient(180deg, var(--surface) 0%, #fafffd 100%); }
 
-        .stat-card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
-        }
+        .badge-active { position: absolute; top: -12px; left: 25px; background-color: var(--success); color: white; font-size: 8pt; font-weight: 700; padding: 4px 12px; border-radius: 20px; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
 
-        .stat-details h3 {
-            margin: 0;
-            font-size: 10pt;
-            color: var(--text-muted);
-        }
+        .card-hover-actions { position: absolute; top: 20px; left: 20px; display: flex; gap: 6px; opacity: 0.3; transition: var(--transition); }
+        .creative-card:hover .card-hover-actions { opacity: 1; }
 
-        .stat-details p {
-            margin: 5px 0 0 0;
-            font-size: 16pt;
-            font-weight: bold;
-            color: var(--primary-color);
+        .btn-circle {
+            width: 34px; height: 34px; border-radius: 50%; border: 1px solid #e2e8f0; background: white;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); font-size: 10pt; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
         }
+        .btn-circle:hover { transform: scale(1.1); background-color: #f8fafc; }
+        .btn-circle.delete-type:hover { background: #fee2e2; border-color: #fca5a5; color: var(--danger); }
 
-        .stat-icon {
-            font-size: 26pt;
-            opacity: 0.8;
+        .card-body-info { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; margin-top: 10px; }
+        .card-emoji { font-size: 26pt; }
+        
+        /* قمنا بتكبير حجم خط اسم الموسم وتنسيقه ليصبح هو العنصر الأبرز */
+        .card-titles h2 { margin: 0; font-size: 13.5pt; font-weight: 800; color: var(--primary); }
+        .card-titles p { margin: 4px 0 0 0; font-size: 8pt; color: #94a3b8; font-family: monospace; font-weight: bold; }
+
+        .items-count-badge {
+            background-color: #f1f5f9; color: var(--primary-light); padding: 6px 12px; border-radius: 8px;
+            font-size: 9pt; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; width: max-content; margin-bottom: 25px;
         }
+        .creative-card.active-brochure .items-count-badge { background-color: var(--success-bg); color: var(--success); }
 
-        /* 🔍 شريط البحث والتصفية (نقطة 1) */
-        .search-section {
-            margin-bottom: 25px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
+        .card-footer-buttons { display: flex; gap: 10px; }
+        
+        .btn-main-action {
+            flex-grow: 2; background-color: var(--primary); color: white; border: none; padding: 11px;
+            font-size: 9.5pt; font-weight: 700; border-radius: 10px; cursor: pointer; text-align: center;
+            text-decoration: none; transition: var(--transition); font-family: 'Cairo', sans-serif;
         }
+        .btn-main-action:hover { background-color: var(--primary-light); }
 
-        .search-input-wrapper {
-            position: relative;
-            flex-grow: 1;
+        .btn-status-toggle {
+            flex-grow: 1; background-color: #e2e8f0; color: var(--text-main); border: none; padding: 11px;
+            font-size: 9pt; font-weight: 700; border-radius: 10px; cursor: pointer; transition: var(--transition); font-family: 'Cairo', sans-serif;
         }
+        .btn-status-toggle:hover { background-color: #cbd5e1; }
+        .creative-card.active-brochure .btn-status-toggle { background-color: var(--success-bg); color: var(--success); cursor: default; }
 
-        .search-bar {
-            width: 100%;
-            padding: 12px 45px 12px 15px;
-            font-size: 11pt;
-            border: 2px solid #cbd5e1;
-            border-radius: 10px;
-            outline: none;
-            transition: border-color 0.2s;
+        .toast-container { position: fixed; bottom: 30px; left: 30px; display: flex; flex-direction: column; gap: 10px; z-index: 99999; }
+        .toast-box {
+            background: var(--primary); color: white; padding: 16px 25px; border-radius: var(--radius-md);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); font-size: 10pt; font-weight: 600; display: flex;
+            align-items: center; gap: 12px; min-width: 300px; border-right: 4px solid var(--accent);
+            animation: toastIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        @keyframes toastIn { from { transform: translateY(30px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
 
-        .search-bar:focus {
-            border-color: var(--primary-color);
-        }
-
-        .search-icon-label {
-            position: absolute;
-            top: 50%;
-            right: 15px;
-            transform: translateY(-50%);
-            font-size: 14pt;
-            color: var(--text-muted);
-        }
-
-        .section-title {
-            font-size: 13pt;
-            font-weight: 700;
-            color: var(--primary-dark);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-title::after {
-            content: '';
-            flex-grow: 1;
-            height: 2px;
-            background-color: #e2e8f0;
-        }
-
-        /* شبكة المواسم والكروت */
-        .seasons-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 25px;
-        }
-
-        .season-card {
-            background-color: var(--card-bg);
-            border-radius: 14px;
-            border: 1px solid #e2e8f0;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-        }
-
-        /* تمييز كرت العرض النشط (نقطة 2) */
-        .season-card.is-active-theme {
-            border: 2px solid var(--success-color);
-            box-shadow: 0 10px 20px rgba(22, 163, 74, 0.08);
-        }
-
-        .season-card.is-active-theme::before {
-            content: 'العرض النشط حالياً 📍';
-            position: absolute;
-            top: 0; left: 0;
-            background-color: var(--success-color);
-            color: white;
-            font-size: 7.5pt;
-            font-weight: bold;
-            padding: 4px 10px;
-            border-bottom-right-radius: 8px;
-        }
-
-        .season-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 22px -5px rgba(0, 0, 0, 0.08);
-            border-color: #cbd5e1;
-        }
-
-        .season-card-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .season-card-icon {
-            font-size: 24pt;
-            background-color: #f1f5f9;
-            width: 55px; height: 55px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 10px;
-        }
-
-        .season-card-info h2 {
-            margin: 0;
-            font-size: 12.5pt;
-            font-weight: 700;
-            color: var(--primary-dark);
-        }
-
-        .season-card-info p {
-            margin: 4px 0 0 0;
-            font-size: 9pt;
-            color: var(--text-muted);
-        }
-
-        /* عداد المنتجات داخل الكرت (نقطة 4) */
-        .season-card-stats {
-            background-color: #f8fafc;
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 9pt;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 15px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            width: max-content;
-        }
-
-        .season-card-actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .btn-action {
-            padding: 10px;
-            font-size: 9.5pt;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-            text-decoration: none;
-        }
-
-        .btn-enter {
-            background-color: var(--primary-color);
-            color: #ffffff;
-            flex-grow: 2;
-        }
-
-        .btn-enter:hover { background-color: var(--primary-dark); }
-
-        /* زر التفعيل كعرض رئيسي (نقطة 2) */
-        .btn-set-active {
-            background-color: #e2e8f0;
-            color: var(--text-main);
-            flex-grow: 1;
-        }
-        .btn-set-active:hover { background-color: #cbd5e1; }
-        .season-card.is-active-theme .btn-set-active {
-            background-color: rgba(22, 163, 74, 0.1);
-            color: var(--success-color);
-            cursor: default;
-        }
-
-        /* زر حذف الموسم (نقطة 5) */
-        .btn-delete-season {
-            background-color: #fee2e2;
-            color: var(--danger-color);
-            width: 38px; height: 38px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 11pt;
-        }
-        .btn-delete-season:hover { background-color: var(--danger-color); color: white; }
-
-        /* Popups */
-        .popup-overlay {
-            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 9999;
-        }
-
-        .popup-screen {
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.3); backdrop-filter: blur(8px); z-index: 9999; }
+        .modal-box {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background-color: #ffffff; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            z-index: 10000; width: 400px; padding: 25px;
+            background: white; border-radius: var(--radius-lg); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+            z-index: 10000; width: 440px; padding: 30px; animation: modalIn 0.3s ease;
         }
+        @keyframes modalIn { from { opacity: 0; transform: translate(-50%, -45%); } to { opacity: 1; transform: translate(-50%, -50%); } }
 
-        .popup-screen h3 { margin-top: 0; margin-bottom: 20px; font-size: 13pt; color: var(--primary-dark); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 9pt; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
-        .form-group input { width: 100%; padding: 10px 12px; font-size: 10pt; border: 2px solid #cbd5e1; border-radius: 8px; outline: none; }
-        .popup-actions { display: flex; gap: 10px; margin-top: 24px; }
-        .popup-btn { flex: 1; padding: 10px; font-size: 10pt; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; }
-        .btn-save { background-color: var(--success-color); color: white; }
-        .btn-cancel { background-color: #94a3b8; color: white; }
+        .modal-box.preview-giant { width: 85%; max-width: 950px; height: 85vh; display: none; flex-direction: column; }
+        .iframe-holder { flex-grow: 1; border: 1px solid #e2e8f0; border-radius: var(--radius-md); overflow: hidden; background: #f8fafc; margin-bottom: 20px; }
+        .iframe-view { width: 100%; height: 100%; border: none; }
 
-        .dashboard-footer { text-align: center; margin-top: 60px; font-size: 9pt; color: var(--text-muted); border-top: 1px solid #e2e8f0; padding-top: 20px; }
+        .modal-box h3 { margin-top: 0; margin-bottom: 20px; font-size: 13pt; color: var(--primary); font-weight: 800; }
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; font-size: 9.5pt; font-weight: 700; margin-bottom: 8px; color: var(--text-main); }
+        .input-group input { width: 100%; padding: 11px 14px; font-size: 10pt; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; font-family: 'Cairo', sans-serif; }
+        .input-group input:focus { border-color: var(--accent); }
+        
+        .modal-footer { display: flex; gap: 12px; margin-top: 25px; }
+        .modal-btn { flex: 1; padding: 11px; font-size: 10pt; font-weight: 700; border: none; border-radius: 10px; cursor: pointer; font-family: 'Cairo', sans-serif; text-align: center; }
+        .modal-btn.confirm { background-color: var(--success); color: white; }
+        .modal-btn.cancel { background-color: #94a3b8; color: white; }
     </style>
 </head>
 <body>
 
-    <div class="dashboard-container">
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="app-layout">
         
-        <header class="dashboard-header">
-            <div class="header-info">
-                <h1>منصة إدارة العروض والبروشور الذكي</h1>
-                <p>ميني ماركت اللبن الغربي أبو هزيم - لوحة التحكم السحابية</p>
-            </div>
-            <button class="btn-add-season" onclick="openAddSeasonPopup()">
-                <span>➕</span> إنشاء موسم جديد
-            </button>
-        </header>
-
-        <section class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-details">
-                    <h3>المواسم المسجلة</h3>
-                    <p id="stat-total-seasons">0</p>
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-brand">
+                    <h2>اللبن الغربي الذكي 🚀</h2>
+                    <p>إدارة العروض السحابية v2.0</p>
                 </div>
-                <div class="stat-icon">📂</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-details">
-                    <h3>الموسم النشط للزبائن</h3>
-                    <p id="stat-active-name" style="font-size: 11pt; margin-top: 8px; color: var(--success-color); font-weight: bold;">جاري القراءة...</p>
+                
+                <div class="sidebar-menu">
+                    <div class="menu-title">العمليات الأساسية</div>
+                    <button class="btn-side-add" onclick="openAddSeasonPopup()">
+                        <span>✨</span> إنشاء موسم جديد
+                    </button>
                 </div>
-                <div class="stat-icon">📍</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-details">
-                    <h3>إجمالي المنتجات المضافة</h3>
-                    <p id="stat-total-products">0</p>
+
+            <div class="backup-section">
+                <div class="menu-title" style="margin-bottom: 10px; color: #475569;">الأمن والأرشفة</div>
+                <button class="btn-backup-outline" onclick="exportDataBackup()">📥 تصدير أرشيف سحابي</button>
+                <button class="btn-backup-outline" onclick="document.getElementById('importFile').click()">📤 استيراد قاعدة بيانات</button>
+                <input type="file" id="importFile" style="display:none;" accept=".json" onchange="importDataBackup(event)">
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-navbar">
+                <div class="page-title">
+                    <h1>لوحة تحكم المواسم والعروض 📊</h1>
+                    <p>أهلاً بك يا أبا هزيم، قم بإدارة وتفعيل بروشورات السوبرماركت والأسعار فوراً.</p>
                 </div>
-                <div class="stat-icon">🛒</div>
-            </div>
-        </section>
+            </header>
 
-        <div class="search-section">
-            <div class="search-input-wrapper">
-                <span class="search-icon-label">🔍</span>
-                <input type="text" class="search-bar" id="searchBar" placeholder="ابحث عن مواسم العروض بالاسم (مثال: رمضان، العيد...)" oninput="filterSeasons()">
-            </div>
-        </div>
-
-        <div class="section-title">📂 مواسم العروض المتوفرة في السحابة</div>
-
-        <section class="seasons-grid" id="seasonsContainer">
+            <section class="stats-strip">
+                <div class="stat-capsule">
+                    <div class="stat-capsule-icon">📂</div>
+                    <div class="stat-capsule-data">
+                        <h3>المواسم المخزنة</h3>
+                        <p id="stat-total-seasons">0</p>
+                    </div>
+                </div>
+                <div class="stat-capsule">
+                    <div class="stat-capsule-icon">📍</div>
+                    <div class="stat-capsule-data">
+                        <h3>البروشور المباشر للزبائن</h3>
+                        <p id="stat-active-name" style="color: var(--success); font-size: 11pt; font-weight: 700;">جاري القراءة...</p>
+                    </div>
+                </div>
+                <div class="stat-capsule">
+                    <div class="stat-capsule-icon">🛒</div>
+                    <div class="stat-capsule-data">
+                        <h3>إجمالي المنتجات بالسحابة</h3>
+                        <p id="stat-total-products">0</p>
+                    </div>
+                </div>
             </section>
 
-        <footer class="dashboard-footer">
-            منصة إدارة ميني ماركت اللبن الغربي الذكية © 2026 | ميزات متطورة وموثوقة
-        </footer>
+            <div class="controls-card">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-field" id="searchBar" placeholder="ابحث عن مواسم العروض فوراً (مثال: رمضان، نهاية الأسبوع...)" oninput="filterAndRenderSeasons()">
+                </div>
+                <select class="select-filter" id="sortSelect" onchange="filterAndRenderSeasons()">
+                    <option value="newest">📅 الأحدث إنشاءً أولاً</option>
+                    <option value="oldest">📅 الأقدم إنشاءً</option>
+                    <option value="activeFirst">📍 العرض النشط بالمقدمة</option>
+                    <option value="mostProducts">📦 الأكثر بضائع وأصناف</option>
+                </select>
+            </div>
+
+            <section class="seasons-grid" id="seasonsContainer">
+                </section>
+        </main>
     </div>
 
-    <div class="popup-overlay" id="popupOverlay" onclick="closeAddSeasonPopup()"></div>
-    <div class="popup-screen" id="addSeasonPopup">
-        <h3>📂 إضافة موسم عروض جديد</h3>
-        <div class="form-group">
-            <label>اسم الموسم:</label>
-            <input type="text" id="newSeasonName" placeholder="مثال: عروض نهاية الأسبوع">
+    <div class="modal-overlay" id="popupOverlay" onclick="closeAddSeasonPopup()"></div>
+    <div class="modal-box" id="addSeasonPopup">
+        <h3>✨ إنشاء موسم عروض جديد</h3>
+        <div class="input-group">
+            <label>اسم الموسم الجديد:</label>
+            <input type="text" id="newSeasonName" placeholder="مثال: عروض الصيف المذهلة">
         </div>
-        <div class="form-group">
-            <label>أيقونة معبرة (Emoji):</label>
+        <div class="input-group">
+            <label>أيقونة معبرة للموسم (Emoji):</label>
             <input type="text" id="newSeasonIcon" value="🛍️" style="text-align: center; font-size: 16pt;">
         </div>
-        <div class="popup-actions">
-            <button class="popup-btn btn-save" onclick="submitNewSeason()">إنشاء الموسم ✓</button>
-            <button class="popup-btn btn-cancel" onclick="closeAddSeasonPopup()">إلغاء ↩️</button>
+        <div class="modal-footer">
+            <button class="modal-btn confirm" onclick="submitNewSeason()">تأسيس الموسم ✓</button>
+            <button class="modal-btn cancel" onclick="closeAddSeasonPopup()">إلغاء وتراجع</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="cloneOverlay" onclick="closeClonePopup()"></div>
+    <div class="modal-box" id="cloneSeasonPopup">
+        <h3>📑 تكرار ومضاعفة كود العرض</h3>
+        <p style="font-size: 9.5pt; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">سيقوم النظام بنسخ مئات البضائع والأسعار المعتمدة داخل هذا الموسم تلقائياً ليوفر عليك وقت الإدخال:</p>
+        <input type="hidden" id="targetCloneId">
+        <div class="input-group">
+            <label>اسم الموسم الجديد المنسوخ:</label>
+            <input type="text" id="clonedSeasonName" placeholder="مثال: عروض الأسبوع الجديد">
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn confirm" onclick="submitCloneSeason()">تأكيد عملية النسخ 📋</button>
+            <button class="modal-btn cancel" onclick="closeClonePopup()">إلغاء</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="previewOverlay" onclick="closeLivePreview()"></div>
+    <div class="modal-box preview-giant" id="livePreviewPopup">
+        <h3 id="previewPopupTitle">👁️ معاينة البروشور النهائي للزبون</h3>
+        <div class="iframe-holder">
+            <iframe id="previewIframe" class="iframe-view"></iframe>
+        </div>
+        <div style="text-align: left;">
+            <button class="modal-btn cancel" style="max-width: 150px;" onclick="closeLivePreview()">إغلاق الشاشة ✖</button>
         </div>
     </div>
 
@@ -420,7 +311,6 @@
         const firebaseConfig = {
             apiKey: "AIzaSyFakeKey_PleaseReplaceWithYourActualKey",
             authDomain: "mymarketbrochure.firebaseapp.com",
-            databaseURL: "https://mymarketbrochure-default-rtdb.firebaseio.com", 
             projectId: "mymarketbrochure",
             storageBucket: "mymarketbrochure.appspot.com",
             messagingSenderId: "777777777777",
@@ -428,7 +318,7 @@
         };
 
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const db = firebase.firestore();
 
         const defaultBrochureStructure = {
             "sec-dairy": [{ name: "علبة لبنة 180 غم", price: "كل 3 بـ 10 شيقل", icon: "🥛" }],
@@ -440,11 +330,22 @@
             "sec-plastics": [{ name: "كاسات كرتون", price: "كل 4 بـ 11 شيقل", icon: "🥤" }]
         };
 
+        let cachedActiveSeasonID = 'weekly_offers';
+        let cachedFullSeasonsData = {};
+
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast-box';
+            toast.innerHTML = `✨ <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3500);
+        }
+
         function openAddSeasonPopup() {
             document.getElementById('popupOverlay').style.display = 'block';
             document.getElementById('addSeasonPopup').style.display = 'block';
         }
-
         function closeAddSeasonPopup() {
             document.getElementById('popupOverlay').style.display = 'none';
             document.getElementById('addSeasonPopup').style.display = 'none';
@@ -458,142 +359,260 @@
 
             const seasonId = 'season_' + Date.now();
 
-            database.ref('registered_seasons/' + seasonId).set(name)
-                .then(() => database.ref('seasons_icons/' + seasonId).set(icon))
-                .then(() => {
-                    return database.ref('seasons/' + seasonId).set({
-                        items: defaultBrochureStructure,
-                        meta: {
-                            h_title: "ميني ماركت اللبن الغربي أبو هزيم",
-                            h_sub: "وسط البلد - خلف المسجد الرئيسي",
-                            h_badge: "عروض: " + name,
-                            footer: "ميني ماركت اللبن الغربي - نتشرف بزيارتكم دائماً ونسعى لخدمتكم بأفضل العروض",
-                            fontSize: 9
-                        }
-                    });
-                })
-                .then(() => {
-                    closeAddSeasonPopup();
-                    loadDashboardData();
-                });
-        }
-
-        // 🔍 دالة التصفية السريعة والبحث (نقطة 1)
-        function filterSeasons() {
-            const query = document.getElementById('searchBar').value.toLowerCase();
-            document.querySelectorAll('.season-card').forEach(card => {
-                const name = card.querySelector('h2').innerText.toLowerCase();
-                card.style.display = name.includes(query) ? 'flex' : 'none';
+            db.collection('brochureData').doc(seasonId).set({
+                name: name,
+                icon: icon,
+                isActive: false,
+                timestamp: Date.now(),
+                items: defaultBrochureStructure,
+                meta: {
+                    h_title: "ميني ماركت اللبن الغربي أبو هزيم",
+                    h_sub: "وسط البلد - خلف المسجد الرئيسي",
+                    h_badge: "عروض: " + name,
+                    footer: "ميني ماركت اللبن الغربي - نتشرف بزيارتكم دائماً ونسعى لخدمتكم بأفضل العروض",
+                    fontSize: 9
+                }
+            })
+            .then(() => {
+                closeAddSeasonPopup();
+                showToast(`تم تأسيس كرت العرض (${name}) في الفايرستور بنجاح!`);
+                loadDashboardData();
             });
         }
 
-        // 📍 دالة تعيين الموسم النشط في مسار منفصل بالـ Firebase (نقطة 2)
-        function setActiveSeason(id, name) {
-            database.ref('active_season_id').set(id).then(() => {
-                loadDashboardData(); // إعادة التحميل لتحديث المظهر
+        function openClonePopup(id, currentName) {
+            document.getElementById('targetCloneId').value = id;
+            document.getElementById('clonedSeasonName').value = currentName + " - مكرر";
+            document.getElementById('cloneOverlay').style.display = 'block';
+            document.getElementById('cloneSeasonPopup').style.display = 'block';
+        }
+        function closeClonePopup() {
+            document.getElementById('cloneOverlay').style.display = 'none';
+            document.getElementById('cloneSeasonPopup').style.display = 'none';
+        }
+
+        function submitCloneSeason() {
+            const sourceId = document.getElementById('targetCloneId').value;
+            const newName = document.getElementById('clonedSeasonName').value.trim();
+            if (!newName) return;
+
+            const newSeasonId = 'season_' + Date.now();
+            const sourceData = cachedFullSeasonsData[sourceId] || { items: defaultBrochureStructure, icon: "🛍️" };
+
+            const clonedData = JSON.parse(JSON.stringify(sourceData));
+            clonedData.name = newName;
+            clonedData.isActive = false;
+            clonedData.timestamp = Date.now();
+            if(clonedData.meta) { clonedData.meta.h_badge = "عروض: " + newName; }
+
+            db.collection('brochureData').doc(newSeasonId).set(clonedData)
+            .then(() => {
+                closeClonePopup();
+                showToast(`تم تكرار ونسخ كافة بضائع الموسم إلى (${newName}) في الفايرستور 📋`);
+                loadDashboardData();
             });
         }
 
-        // 🗑️ دالة حذف الموسم من كافة مسارات قاعدة البيانات (نقطة 5)
-        function deleteSeason(id, name) {
-            if (id === 'weekly_offers') {
-                alert('لا يمكن حذف الموسم الافتراضي للحفاظ على استقرار النظام!');
-                return;
-            }
-            if (confirm(`⚠️ تحذير: هل أنت متأكد تماماً من حذف موسم (${name}) نهائياً من السحابة؟ لا يمكن التراجع.`)) {
-                // الحذف الفوري من المسارات الأربعة المتطابقة
-                Promise.all([
-                    database.ref('registered_seasons/' + id).remove(),
-                    database.ref('seasons_icons/' + id).remove(),
-                    database.ref('seasons/' + id).remove()
-                ]).then(() => {
-                    // إذا كان المحذوف هو النشط، أعد النشط للافتراضي
-                    return database.ref('active_season_id').once('value');
-                }).then(snap => {
-                    if (snap.val() === id) {
-                        return database.ref('active_season_id').set('weekly_offers');
-                    }
-                }).then(() => {
-                    loadDashboardData();
-                });
-            }
+        function openLivePreview(id, name) {
+            document.getElementById('previewPopupTitle').innerText = `👁️ معاينة حية ومباشرة لبروشور: ${name}`;
+            const iframe = document.getElementById('previewIframe');
+            iframe.src = `Sales.html?season=${id}&preview=true`;
+            document.getElementById('previewOverlay').style.display = 'block';
+            document.getElementById('livePreviewPopup').style.display = 'flex';
+        }
+        function closeLivePreview() {
+            document.getElementById('previewOverlay').style.display = 'none';
+            document.getElementById('livePreviewPopup').style.display = 'none';
+            document.getElementById('previewIframe').src = '';
         }
 
-        // 📊 جلب البيانات وبناء النظام مع حساب الإحصائيات التفصيلية (نقطة 4)
-        function loadDashboardData() {
-            const container = document.getElementById('seasonsContainer');
-            container.innerHTML = '<p style="text-align:center; color:var(--text-muted);">جاري الاتصال بالسحابة وجلب البيانات والمواسم...</p>';
+        function exportDataBackup() {
+            db.collection('brochureData').get().then(querySnapshot => {
+                const fullDb = {};
+                querySnapshot.forEach(doc => { fullDb[doc.id] = doc.data(); });
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullDb, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", `نسخة_فايرستور_اللبن_الغربي_${new Date().toISOString().slice(0,10)}.json`);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+                showToast("تم تحميل وحفظ ملف الأرشيف السحابي من الفايرستور! 📥");
+            });
+        }
 
-            // جلب البيانات الأساسية دفعة واحدة
-            Promise.all([
-                database.ref('registered_seasons').once('value'),
-                database.ref('seasons_icons').once('value'),
-                database.ref('active_season_id').once('value'),
-                database.ref('seasons').once('value')
-            ]).then(([seasonsSnap, iconsSnap, activeSnap, fullSeasonsSnap]) => {
-                const seasonsList = seasonsSnap.val() || { 'weekly_offers': '📍 عروض العيد الكبرى (الافتراضية)' };
-                const iconsList = iconsSnap.val() || {};
-                const activeSeasonID = activeSnap.val() || 'weekly_offers';
-                const fullSeasonsData = fullSeasonsSnap.val() || {};
-                
-                container.innerHTML = '';
-                const keys = Object.keys(seasonsList);
-                
-                document.getElementById('stat-total-seasons').innerText = keys.length;
-                document.getElementById('stat-active-name').innerText = seasonsList[activeSeasonID] || 'غير محدد';
+        function importDataBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-                let totalGlobalProducts = 0;
-
-                keys.forEach(id => {
-                    const name = seasonsList[id];
-                    const icon = iconsList[id] || "🛍️";
-                    const isActive = (id === activeSeasonID);
-                    
-                    // حساب عدد المنتجات داخل هذا الموسم (نقطة 4 التفصيلية)
-                    let seasonProductCount = 0;
-                    if (fullSeasonsData[id] && fullSeasonsData[id].items) {
-                        const sections = fullSeasonsData[id].items;
-                        Object.keys(sections).forEach(sec => {
-                            const rows = sections[sec];
-                            if (rows) {
-                                seasonProductCount += Array.isArray(rows) ? rows.filter(Boolean).length : Object.keys(rows).length;
-                            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedJson = JSON.parse(e.target.result);
+                    if (confirm("⚠️ تحذير: استيراد ملف خارجي سيستبدل كل شيء على الفايرستور حالياً. هل تود الاستمرار؟")) {
+                        const batch = db.batch();
+                        Object.keys(importedJson).forEach(docId => {
+                            const docRef = db.collection('brochureData').doc(docId);
+                            batch.set(docRef, importedJson[docId]);
+                        });
+                        batch.commit().then(() => {
+                            showToast("تم استيراد قاعدة بيانات Firestore بالكامل بنجاح! 📤");
+                            loadDashboardData();
                         });
                     }
-                    totalGlobalProducts += seasonProductCount;
+                } catch (err) {
+                    alert("الملف المرفوع غير مدعوم أو غير صحيح!");
+                }
+            };
+            reader.readAsText(file);
+        }
 
-                    // بناء كرت الموسم المتطور
-                    const card = document.createElement('div');
-                    card.className = `season-card ${isActive ? 'is-active-theme' : ''}`;
-                    card.innerHTML = `
-                        <div class="season-card-header">
-                            <div class="season-card-icon">${icon}</div>
-                            <div class="season-card-info">
-                                <h2>${name}</h2>
-                                <p>كود: ${id}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="season-card-stats">
-                            📦 يحتوي على: ${seasonProductCount} صنف معروض
-                        </div>
+        function setActiveSeason(activeId) {
+            db.collection('brochureData').get().then(querySnapshot => {
+                const batch = db.batch();
+                querySnapshot.forEach(doc => {
+                    const docRef = db.collection('brochureData').doc(doc.id);
+                    if (doc.id === activeId) {
+                        batch.update(docRef, { isActive: true });
+                    } else {
+                        batch.update(docRef, { isActive: false });
+                    }
+                });
+                return batch.commit();
+            }).then(() => {
+                showToast("تم اعتماد العرض ونشره فورياً لجميع شاشات الزبائن عبر Firestore 🟢");
+                loadDashboardData();
+            });
+        }
 
-                        <div class="season-card-actions">
-                            <a href="Sales.html?season=${id}" class="btn-action btn-enter">📂 إدارة الأصناف</a>
-                            <button class="btn-action btn-set-active" onclick="setActiveSeason('${id}', '${name}')" ${isActive ? 'disabled' : ''}>
-                                ${isActive ? '✓ نشط' : '📍 تفعيل للزبائن'}
-                            </button>
-                            <button class="btn-delete-season" title="حذف الموسم نهائياً" onclick="deleteSeason('${id}', '${name}')">🗑️</button>
-                        </div>
-                    `;
-                    container.appendChild(card);
+        function deleteSeason(id, name) {
+            if (id === 'weekly_offers') {
+                showToast('❌ لا يمكن حذف كرت العرض الافتراضي!');
+                return;
+            }
+            if (confirm(`هل أنت متأكد تماماً من حذف موسم (${name}) نهائياً من الفايرستور؟`)) {
+                db.collection('brochureData').doc(id).delete().then(() => {
+                    showToast(`تم حذف موسم (${name}) وتنظيف الفايرستور 🗑️`);
+                    loadDashboardData();
+                });
+            }
+        }
+
+        function loadDashboardData() {
+            const container = document.getElementById('seasonsContainer');
+            container.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-weight:bold; grid-column:1/-1;">جاري مزامنة الفايرستور وجلب المواسم المعاصرة...</p>';
+
+            db.collection('brochureData').get().then((querySnapshot) => {
+                cachedFullSeasonsData = {};
+                cachedActiveSeasonID = 'weekly_offers';
+
+                if(querySnapshot.empty) {
+                    db.collection('brochureData').doc('weekly_offers').set({
+                        name: '📍 عروض العيد الكبرى (الافتراضية)',
+                        icon: '🛍️',
+                        isActive: true,
+                        timestamp: Date.now(),
+                        items: defaultBrochureStructure
+                    }).then(() => loadDashboardData());
+                    return;
+                }
+
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    cachedFullSeasonsData[doc.id] = data;
+                    if (data.isActive === true) { cachedActiveSeasonID = doc.id; }
                 });
 
-                // تحديث عداد السلع الإجمالي
-                document.getElementById('stat-total-products').innerText = totalGlobalProducts;
-
+                filterAndRenderSeasons();
             }).catch(err => {
-                container.innerHTML = `<p style="text-align:center; color:red;">خطأ أثناء الاتصال: ${err.message}</p>`;
+                container.innerHTML = `<p style="text-align:center; color:red; grid-column:1/-1;">خطأ في مزامنة Firestore: ${err.message}</p>`;
+            });
+        }
+
+        function filterAndRenderSeasons() {
+            const container = document.getElementById('seasonsContainer');
+            const searchQuery = document.getElementById('searchBar').value.toLowerCase();
+            const sortBy = document.getElementById('sortSelect').value;
+
+            container.innerHTML = '';
+            let keys = Object.keys(cachedFullSeasonsData);
+            
+            document.getElementById('stat-total-seasons').innerText = keys.length;
+            document.getElementById('stat-active-name').innerText = cachedFullSeasonsData[cachedActiveSeasonID] ? cachedFullSeasonsData[cachedActiveSeasonID].name : 'غير محدد';
+
+            let itemsDataList = keys.map(id => {
+                let pCount = 0;
+                const docData = cachedFullSeasonsData[id];
+                if (docData && docData.items) {
+                    const sections = docData.items;
+                    Object.keys(sections).forEach(sec => {
+                        if (sections[sec]) {
+                            pCount += Array.isArray(sections[sec]) ? sections[sec].filter(Boolean).length : Object.keys(sections[sec]).length;
+                        }
+                    });
+                }
+                return {
+                    id: id,
+                    name: docData.name || id,
+                    icon: docData.icon || "🛍️",
+                    productCount: pCount,
+                    isActive: (id === cachedActiveSeasonID),
+                    timestamp: docData.timestamp || 0
+                };
+            });
+
+            let totalGlobalProducts = itemsDataList.reduce((sum, item) => sum + item.productCount, 0);
+            document.getElementById('stat-total-products').innerText = totalGlobalProducts;
+
+            if (searchQuery) {
+                itemsDataList = itemsDataList.filter(item => item.name.toLowerCase().includes(searchQuery));
+            }
+
+            if (sortBy === 'newest') { itemsDataList.sort((a, b) => b.timestamp - a.timestamp); } 
+            else if (sortBy === 'oldest') { itemsDataList.sort((a, b) => a.timestamp - b.timestamp); } 
+            else if (sortBy === 'activeFirst') { itemsDataList.sort((a, b) => b.isActive - a.isActive); } 
+            else if (sortBy === 'mostProducts') { itemsDataList.sort((a, b) => b.productCount - a.productCount); }
+
+            if (itemsDataList.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1; padding: 40px;">لا توجد مواسم عروض تطابق مدخلات البحث...</p>';
+                return;
+            }
+
+            itemsDataList.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `creative-card ${item.isActive ? 'active-brochure' : ''}`;
+                // تم التعديل هنا: يظهر اسم الموسم بشكل واضح وكبير <h2>، بينما الـ ID يظهر بالأسفل ناعماً وصغيراً كملاحظة جانية
+                card.innerHTML = `
+                    ${item.isActive ? '<div class="badge-active">الموسم المباشر حالياً 📍</div>' : ''}
+                    
+                    <div class="card-hover-actions">
+                        <button class="btn-circle" title="نسخ وتكرار العرض" onclick="openClonePopup('${item.id}', '${item.name}')">📑</button>
+                        <button class="btn-circle" title="معاينة البروشور" onclick="openLivePreview('${item.id}', '${item.name}')">👁️</button>
+                        <button class="btn-circle delete-type" title="حذف نهائي" onclick="deleteSeason('${item.id}', '${item.name}')">🗑️</button>
+                    </div>
+
+                    <div class="card-body-info">
+                        <div class="card-emoji">${item.icon}</div>
+                        <div class="card-titles">
+                            <h2>${item.name}</h2>
+                            <p style="font-size: 8pt; color: #94a3b8;">المعرف الرقمي: ${item.id}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="items-count-badge">
+                            📦 يضم: ${item.productCount} صنف تجاري
+                        </div>
+                    </div>
+
+                    <div class="card-footer-buttons">
+                        <a href="Sales.html?season=${item.id}" class="btn-main-action">📂 إدارة المنتجات والأسعار</a>
+                        <button class="btn-status-toggle" onclick="setActiveSeason('${item.id}')" ${item.isActive ? 'disabled' : ''}>
+                            ${item.isActive ? 'نشط وعامل' : 'تفعيل'}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
             });
         }
 
