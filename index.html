@@ -126,7 +126,6 @@
         .card-body-info { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; margin-top: 10px; }
         .card-emoji { font-size: 26pt; }
         
-        /* قمنا بتكبير حجم خط اسم الموسم وتنسيقه ليصبح هو العنصر الأبرز */
         .card-titles h2 { margin: 0; font-size: 13.5pt; font-weight: 800; color: var(--primary); }
         .card-titles p { margin: 4px 0 0 0; font-size: 8pt; color: #94a3b8; font-family: monospace; font-weight: bold; }
 
@@ -259,8 +258,7 @@
                 </select>
             </div>
 
-            <section class="seasons-grid" id="seasonsContainer">
-                </section>
+            <section class="seasons-grid" id="seasonsContainer"></section>
         </main>
     </div>
 
@@ -284,7 +282,7 @@
     <div class="modal-overlay" id="cloneOverlay" onclick="closeClonePopup()"></div>
     <div class="modal-box" id="cloneSeasonPopup">
         <h3>📑 تكرار ومضاعفة كود العرض</h3>
-        <p style="font-size: 9.5pt; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">سيقوم النظام بنسخ مئات البضائع والأسعار المعتمدة داخل هذا الموسم تلقائياً ليوفر عليك وقت الإدخال:</p>
+        <p style="font-size: 9.5pt; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">سيقوم النظام بنسخ مئات البضائع والأسعار المعتمدة داخل هذا الموسم تلقائياً ليوفر عليك وقت الإدخل:</p>
         <input type="hidden" id="targetCloneId">
         <div class="input-group">
             <label>اسم الموسم الجديد المنسوخ:</label>
@@ -581,7 +579,6 @@
             itemsDataList.forEach(item => {
                 const card = document.createElement('div');
                 card.className = `creative-card ${item.isActive ? 'active-brochure' : ''}`;
-                // تم التعديل هنا: يظهر اسم الموسم بشكل واضح وكبير <h2>، بينما الـ ID يظهر بالأسفل ناعماً وصغيراً كملاحظة جانية
                 card.innerHTML = `
                     ${item.isActive ? '<div class="badge-active">الموسم المباشر حالياً 📍</div>' : ''}
                     
